@@ -1,0 +1,132 @@
+from flask import Flask, request, render_template
+import threading
+from flask import flash
+from pymongo import MongoClient
+import schedule
+import time
+import datetime
+app = Flask(__name__)
+
+CONNECTION_STRING = "mongodb+srv://root:root@cluster0.llzhh.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+client = MongoClient(CONNECTION_STRING)
+dbname = client['scheduler']
+collection_name = dbname["scheduling_requests"] 
+
+def writelog(msg):
+    print("Writing")
+    f = open("schedulerLog.txt", "a")
+    f.write(msg)
+    f.close()
+
+def everydaySchedule(data):
+    schedule.every().day.do(sendToDeployer,data,True)
+
+def repeatSchedule(data, repeatStatus):
+    daysData=data['days']
+    for days in daysData:
+        if(days == 'monday'):
+            schedule.every().monday.at(data['StartTime']).do(sendToDeployer,data,repeatStatus)
+            writelog('Scheduled for every monday')
+        elif(days=='tuesday'):
+            schedule.every().tuesday.at(data['StartTime']).do(sendToDeployer,data,repeatStatus)
+            writelog('Scheduled for every tuesday')
+        elif(days=='wednesday'):
+            schedule.every().wednesday.at(data['StartTime']).do(sendToDeployer,data,repeatStatus)
+            writelog('Scheduled for every wednesday')
+        elif(days=='thursday'):
+            schedule.every().thursday.at(data['StartTime']).do(sendToDeployer,data,repeatStatus)
+            writelog('Scheduled for every thursday')
+        if(days=='friday'):
+            schedule.every().friday.at(data['StartTime']).do(sendToDeployer,data,repeatStatus)
+            writelog('Scheduled for every friday')
+        if(days=='saturday'):
+            schedule.every().saturday.at(data['StartTime']).do(sendToDeployer,data,repeatStatus)
+            writelog('Scheduled for every saturday')
+        if(days=='sunday'):
+            schedule.every().sunday.at(data['StartTime']).do(sendToDeployer,data,repeatStatus)
+            writelog('Scheduled for every sunday')
+
+
+def scheduleRequest(data):
+    if len(data['days']) == 7:
+        everydaySchedule(data)                  # Daily job
+    else:
+        repeatSchedule(data,data['repeat'])     # Weekly or one time job
+
+
+def sendToDeployer (data,repeatStatus):
+    writelog("Request sent to deployer")
+
+    if(repeatStatus=='False'):
+        collection_name.delete_one(data)
+        return schedule.CancelJob
+
+
+def formatFormData(output):
+    currentTimeDate = datetime.datetime.now()
+    currentTime = currentTimeDate.strftime('%H:%M')
+
+    data = {'userID': '', 'ApplicationID': '', 'days': [], 'StartTime': currentTime, 'Duration': 24*60, 'filename': None, 'repeat': False}
+    if 'userID' in output:
+        data['userID'] = output['userID']
+
+    if 'ApplicationID' in output:
+        data['ApplicationID'] = output['ApplicationID']
+
+    if 'StartTime' in output and output['StartTime'] != "":
+        data['StartTime'] = output['StartTime']
+
+    if 'Duration' in output and output['Duration'] != "":
+        data['Duration'] = output['Duration']
+
+    for i in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']:
+        if i in output:
+            data['days'].append(i.lower())
+    # if(len(data['days'])):
+    #     data['days']=['Sunday']
+
+    if 'filename' in output:
+        data['filename'] = output['filename'] 
+    
+    if 'repeat' in output:
+        data['repeat']=True
+
+    return data
+
+
+@app.route("/")
+def home():
+    return render_template("temp.html")
+
+@app.route("/toDB", methods=["POST", "GET"])
+def toDB():
+    output = request.form.to_dict()
+    data=formatFormData(output)
+    collection_name.insert_one(data)
+
+    msg="Inserted into DB with userID: "+data['userID']
+    writelog(msg)
+    scheduleRequest(data)
+    return render_template("temp.html")
+
+
+def runPending():
+    # pick task from DB and run it
+    print("In Run Pending")
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+def renderUI():
+    app.use_reloader=False
+    app.run()
+
+t1 = threading.Thread(target=renderUI)
+t2 = threading.Thread(target = runPending)
+
+# app.run(debug='True')
+t1.start()
+t2.start()
+
+t1.join()
+t2.join()
