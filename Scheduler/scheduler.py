@@ -86,8 +86,8 @@ def formatFormData(output):
         if i in output:
             data['days'].append(i.lower())
 
-    # if(len(data['days'])==0):
-    #     data['days']=['Sunday']
+    if(len(data['days'])==0):
+        data['days']=['Sunday']
 
     if 'filename' in output:
         data['filename'] = output['filename'] 
