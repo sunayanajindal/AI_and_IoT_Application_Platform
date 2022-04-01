@@ -1,4 +1,5 @@
 import json
+import sys
 
 def dockerGenerator(config_file_path, service_name):
     configFile = open(config_file_path,'r')
@@ -46,5 +47,7 @@ def dockerGenerator(config_file_path, service_name):
     df.write(str)
     df.close()
 
+# config file, service name
+dockerGenerator(sys.argv[1],"service-1")
 
-dockerGenerator("./config.json","service-1")
+# dockerGenerator("./config.json","service-1")

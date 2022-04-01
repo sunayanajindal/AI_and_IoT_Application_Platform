@@ -1,1 +1,0 @@
-Contains pyhton scripts for needful purposes.

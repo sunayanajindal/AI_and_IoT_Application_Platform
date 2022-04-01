@@ -1,0 +1,22 @@
+{
+    "Request_Manager":{
+        "vm_name": "VM1",
+        "dir": "../../Request_Manager"
+    },
+
+    "Authentication_Manager":{
+        "vm_name": "VM1",
+        "dir": "../../Authentication_Manager"
+    },
+
+    "Scheduler":{
+        "vm_name": "VM1",
+        "dir": "../../Scheduler"
+    },
+
+    "Deployment_Manager":{
+        "vm_name": "VM1",
+        "dir": "../../deployment-manager"
+    }
+
+}

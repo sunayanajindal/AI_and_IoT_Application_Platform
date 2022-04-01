@@ -30,7 +30,7 @@ def predict():
 
     preProcessedData = contract.preprocess(data)
 
-    modelfile = open('model.pkl','rb')
+    modelfile = open(model.pkl,'rb')
     model = pickle.load(modelfile)
 
     prediction = model.predict(preProcessedData)

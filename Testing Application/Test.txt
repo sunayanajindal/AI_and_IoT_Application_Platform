@@ -1,1 +1,0 @@
-Using this directory to dump all files and codes related to testing of application.

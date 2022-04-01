@@ -1,4 +1,6 @@
+from encodings import utf_8
 from Contract import Contract
+import sys
 
 
 str = ""
@@ -10,7 +12,10 @@ from flask import Flask,request
 
 app = Flask(__name__)\n\n"""
 
-contract_file = open('Contract.py','r')
+# contract_file = open('Contract.py','r')
+print(sys.argv[1])
+contract_file = open(sys.argv[1],'r')
+print(type(contract_file),contract_file)
 contract_as_string = contract_file.read()
 contract_file.close()
 
@@ -28,7 +33,7 @@ def predict():
 
     preProcessedData = contract.preprocess(data)
 
-    modelfile = open('model.pkl','rb')
+    modelfile = open("""+sys.argv[2]+""",'rb')
     model = pickle.load(modelfile)
 
     prediction = model.predict(preProcessedData)

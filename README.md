@@ -1,1 +1,0 @@
-# AI_and_IoT_Application_Platform

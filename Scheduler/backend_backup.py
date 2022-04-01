@@ -1,4 +1,4 @@
-from flask import Flask,redirect, request, render_template
+from flask import Flask, request, render_template
 import threading
 from flask import flash
 from pymongo import MongoClient
@@ -6,9 +6,6 @@ import schedule
 import time
 import datetime
 app = Flask(__name__)
-
-REQUEST_MANAGER = "http://127.0.0.1:5000"
-
 
 def formatFormData(output):
     currentTimeDate = datetime.datetime.now()
@@ -42,8 +39,7 @@ def formatFormData(output):
 
     return data
 
-# CONNECTION_STRING = "mongodb+srv://root:root@cluster0.llzhh.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
+CONNECTION_STRING = "mongodb+srv://root:root@cluster0.llzhh.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
 client = MongoClient(CONNECTION_STRING)
 dbname = client['scheduler']
 collection_name = dbname["scheduling_requests"] 
@@ -116,26 +112,17 @@ def toDB():
     msg="Inserted into DB with userID: "+data['userID']
     writelog(msg)
     scheduleRequest(data)
-    stttr = REQUEST_MANAGER+"/Dashboard/"+output['user_type']
-    print(stttr) 
-    redir = redirect(REQUEST_MANAGER+"/Dashboard/"+output['user_type'])
-    redir.headers['Authorization'] = output['token']
-    return redir
-    #return render_template("temp.html")
+    return render_template("dashboard.html")
 
-# app.run(port=5001)
-
-def renderUI():
-    app.use_reloader=False
-    app.run(port=5011)
-
-t1 = threading.Thread(target=renderUI)
-t2 = threading.Thread(target = runPending)
+app.run(port=5011)
+runPending()
+#t1 = threading.Thread(target=renderUI)
+#t2 = threading.Thread(target = runPending)
 
 # app.run(debug='True')
 
-t1.start()
-t2.start()
+#t1.start()
+#t2.start()
 
-t1.join()
-t2.join()
+#t1.join()
+#t2.join()
