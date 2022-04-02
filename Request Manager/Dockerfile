@@ -4,5 +4,5 @@ WORKDIR /app
 RUN pip3 install flask
 RUN pip3 install PyJWT
 RUN pip3 install requests
-EXPOSE 5000
+RUN pip3 install cgi-tools
 CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]

@@ -8,9 +8,5 @@ RUN pip3 install cgi-tools
 RUN pip3 install paramiko
 RUN pip3 install pickle-mixin
 
-ENV FLASK_APP=dashboard.py
 
-# CMD [ "python3", "-m" , "dashboard.py", "--host=0.0.0.0"]
-CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
-
-
+CMD [ "python3", "-m" , "dashboard.py", "--host=0.0.0.0"]
