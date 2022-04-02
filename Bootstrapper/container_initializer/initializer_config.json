@@ -1,25 +1,25 @@
 {
     "Request_Manager":{
         "vm_name": "VM1",
-        "dir": ".Request_Manager",
+        "dir": "./Request_Manager",
         "destination": "root/Request_Manager/"
     },
 
     "Authentication_Manager":{
         "vm_name": "VM1",
-        "dir": ".Authentication_Manager",
+        "dir": "./Authentication_Manager",
         "destination": "root/Authentication_Manager/"
     },
 
     "Scheduler":{
         "vm_name": "VM1",
-        "dir": ".Scheduler",
+        "dir": "./Scheduler",
         "destination": "root/Scheduler/"
     },
 
     "Deployment_Manager":{
         "vm_name": "VM1",
-        "dir": ".deployment-manager",
+        "dir": "./deployment-manager",
         "destination": "root/Deployment_Manager/"
     }
 
