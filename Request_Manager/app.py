@@ -8,7 +8,7 @@ import cgitb; cgitb.enable()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
 
-AUTHENTICATION_MANAGER = 'http://127.0.0.1:5001'
+AUTHENTICATION_MANAGER = 'http://10.0.0.6:5001'
 MODEL_APP_REPO = 'http://127.0.0.1:5002'
 DEPLOYER = "http://127.0.0.1:5005"
 SCHEDULER = "http://127.0.0.1:5010"

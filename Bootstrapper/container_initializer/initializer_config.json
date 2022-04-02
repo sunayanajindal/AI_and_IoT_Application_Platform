@@ -1,26 +1,30 @@
 {
     "Request_Manager":{
+        "port":5000,
         "vm_name": "VM1",
         "dir": "./Request_Manager",
-        "destination": "root/Request_Manager/"
+        "destination": "~/Request_Manager/",
     },
 
     "Authentication_Manager":{
+        "port":5001,
         "vm_name": "VM1",
         "dir": "./Authentication_Manager",
-        "destination": "root/Authentication_Manager/"
+        "destination": "~/Authentication_Manager/"
     },
 
     "Scheduler":{
+        "port":5002,
         "vm_name": "VM1",
         "dir": "./Scheduler",
-        "destination": "root/Scheduler/"
+        "destination": "~/Scheduler/"
     },
 
     "Deployment_Manager":{
+        "port":5003,
         "vm_name": "VM1",
         "dir": "./deployment-manager",
-        "destination": "root/Deployment_Manager/"
+        "destination": "~/Deployment_Manager/"
     }
 
 }
