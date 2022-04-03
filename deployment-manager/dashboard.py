@@ -125,4 +125,4 @@ def upload_file():
     
     print("It's working hahaha")
 	
-app.run(port=5005,debug=True)
+app.run(port=5005,debug=False)

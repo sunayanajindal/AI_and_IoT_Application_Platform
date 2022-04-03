@@ -4,8 +4,6 @@ import cgi, os
 import json
 import jwt
 import ast
-import cgitb
-
 import cgitb; cgitb.enable()
 from pymongo import MongoClient
 import certifi
@@ -13,17 +11,14 @@ import certifi
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
 
-REQUEST_MANAGER = 'http://127.0.0.1:5000'
 AUTHENTICATION_MANAGER = 'http://127.0.0.1:5001'
 MODEL_APP_REPO = 'http://127.0.0.1:5002'
 DEPLOYER = "http://127.0.0.1:5005"
-SCHEDULER = "http://127.0.0.1:5011"
+SCHEDULER = "http://127.0.0.1:5010"
 SCHBACK = "http://127.0.0.1:5011"
 
 SENSOR_CONFIGURER = "http://127.0.0.1:6001"
 APP_CONFIGURER = "http://127.0.0.1:6005"
-SENSOR_BINDER = "http://127.0.0.1:6005"
-
 
 AUTH_URL = AUTHENTICATION_MANAGER + '/authenticate_user/'
 CREATE_URL = AUTHENTICATION_MANAGER + '/create_user/'
@@ -32,7 +27,7 @@ CREATE_URL = AUTHENTICATION_MANAGER + '/create_user/'
 CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
 client = MongoClient(CONNECTION_STRING, tlsCAFile=certifi.where())
 
-dbname = client['AI_PLATFORM']
+dbname = client['Application']
 app_req_db = dbname["app_requirement"]
 
 
@@ -100,6 +95,70 @@ def dashboard(user_type, auth_token ="" ):
     return response 
     #return requests.post(SCHEDULER_ADDRESS,headers={'Authorization': session["auth_token"]},json={'username':username,'role':role})
 
+SENSOR_INSTANCES_DB = client['sensor']["SENSOR_INSTANCES"]
+given_app_id = "app1"
+app_sensor_data = {}
+sensor_kinds = list()
+sensor_count = list()
+
+def processRequest(appSensorReq):
+    # print(appSensorReq)
+    sensorInstances = list(SENSOR_INSTANCES_DB.find())
+    binding_map = list()        # type + location + count : id
+    alotted_sensors = {}        # type + location : count_alotted
+    busy_sensor_map = [0] * len(sensorInstances)
+
+
+    for i in appSensorReq['info']:
+        currentSensorReq = i['type'] + i['location']
+        sensorAvailable = False
+
+        for j in range(len(sensorInstances)):   
+            if sensorInstances[j]['type'] == i['type'] and sensorInstances[j]['location'] == i['location'] and busy_sensor_map[j] == 0:
+                busy_sensor_map[j] = 1
+                count = alotted_sensors.get(currentSensorReq, 0)
+                alotted_sensors[currentSensorReq] = count+1
+
+                key = currentSensorReq + str(count)
+                # print(key)
+                topic_id =str(sensorInstances[j]['_id'])+"_topic"
+                val = {"type": sensorInstances[j]['type'] , "location" : sensorInstances[j]['location'], "topic" : topic_id}
+                binding_map.append(val)
+                sensorAvailable = True
+                break
+
+        if not sensorAvailable:
+            print("Error: Sensor not available!")
+            return
+    # print(binding_map)
+    return binding_map
+
+@app.route("/jsonifyRequest", methods=['POST', 'GET'])
+def sensor_requirements1():
+    auth_token = request.cookies.get('auth_token')
+    print("+++++++++++++++++++++++++++++++++++++++++++")
+    print(auth_token)
+    print("+++++++++++++++++++++++++++++++++++++++++++")
+    request_details = {"info" : list()}
+    new_sensor_instance = request.form.to_dict()
+    # print(new_sensor_instance)
+    for each in new_sensor_instance:
+        l = each.split('_')
+        # print (l)
+        val = {"type" : l[0] , "location" : new_sensor_instance[each]}
+        request_details["info"].append(val)
+
+    # print(request_details)
+    
+    binding_map = processRequest(request_details)
+    scheduling_data = {"app_id": given_app_id,"info" : binding_map}
+    # print(scheduling_data)
+    response=requests.post(SCHBACK+"/schedule_data",json=scheduling_data).content.decode()
+    
+    return render_template("temp.html",user_type="End_User",token=auth_token,URL=SCHBACK)
+    # return render_template("scheduler_frontend.html",URL = SCHBACK)
+
+
 @app.route("/sensor_location", methods=['POST', 'GET'])
 def sensor_requirements():
     app_sensor_data = {}
@@ -130,7 +189,7 @@ def sensor_requirements():
         sensor_kinds.append(sensor_type)
         sensor_count.append(app_sensor_req[sensor_type])
 
-    return render_template("sensor_location.html", SCHEDULER = SCHEDULER, URL = SENSOR_BINDER,sensor_kinds=sensor_kinds, sensor_count=sensor_count)
+    return render_template("sensor_location.html", sensor_kinds=sensor_kinds, sensor_count=sensor_count)
 
 @app.route('/register/<user_type>', methods = ['POST'])
 def register(user_type):
@@ -155,23 +214,6 @@ def login(user_type):
     else:
         return render_template('signin_page.html', user_type =  user_type, authcode="error_login", mesg = payload["message"])
 
-@app.route('/Schedule/',methods= ['GET','POST'])
-def schedule():
-    auth_token=""
-    if auth_token == "":
-        auth_token = request.headers.get('Authorization')
-        if auth_token == None:
-            auth_token = request.cookies.get('auth_token')
-    try:
-        payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'),algorithms=['HS256'])
-    except:
-        return session_expired("End_User",'')
-    return render_template("temp.html",username=payload['sub'],user_type="End_User",token=auth_token,URL=SCHEDULER)
-
-
-@app.route('/Success/',methods= ['GET','POST'])
-def success():
-    return render_template("success.html",URL=REQUEST_MANAGER)
 
 @app.route('/Upload/<user_type>', methods = ['POST'])
 def upload(user_type):

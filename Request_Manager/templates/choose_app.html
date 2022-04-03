@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{title}}</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="{{description}}" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+  </head>
+
+  <body>
+    <form action="/sensor_location" method="post">
+      <label>Select Application</label>
+      <br />
+      {% for i in range(app_names|length) %} {% set x = app_ids[i] %}
+      <br />
+      {% set y = app_names[i] %}
+      <input type="radio" name="{{x}}" />
+      <label>{{y}}</label>
+      <br />
+      {% endfor %}
+      <br />
+    
+      <input type="submit" />
+    </form>
+  </body>
+</html>

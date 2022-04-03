@@ -42,3 +42,13 @@ Inserted into DB with userID: 123
 Inserted into DB with userID: 123
 Inserted into DB with userID: 123
 Inserted into DB with userID: 123
+Scheduled Request from username:  for every Monday
+Scheduled to kill request from username:  for every Monday
+Scheduled Request from username:  for every Tuesday
+Scheduled to kill request from username:  for every Tuesday
+Scheduled Request from username:  for every Wednesday
+Scheduled to kill request from username:  for every Wednesday
+Scheduled Request from username:  for every Saturday
+Scheduled to kill request from username:  for every Saturday
+Scheduled Request from username: 62494012b2f7df662308d524 for every Monday
+Scheduled to kill request from username: 62494012b2f7df662308d524 for every Monday

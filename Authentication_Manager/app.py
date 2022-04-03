@@ -12,33 +12,33 @@ app = Flask(__name__)
 # todos = db.todos
 CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
 client = MongoClient(CONNECTION_STRING)
-dbname = client['Users']
+dbname = client['AI_PLATFORM']
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///User.db'
 app.config['SECRET_KEY'] = 'secretkey'
 
-db = SQLAlchemy(app)
+# db = SQLAlchemy(app)
 
-class User():
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(80), nullable=False)
-    def  encode_auth_token(self, user_id):
-        print("encode yes man")
-        try:
-            payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=300),
-                'iat': datetime.datetime.utcnow(),
-                'sub': user_id
-            }
-            return jwt.encode(
-                payload,
-                app.config.get('SECRET_KEY'),
-                algorithm='HS256'
-            )
-        except Exception as e:
-            print("some error yes man")
-            return e
+# class User():
+#     id = db.Column(db.Integer, primary_key=True)
+#     username = db.Column(db.String(80), unique=True, nullable=False)
+#     password = db.Column(db.String(80), nullable=False)
+#     def  encode_auth_token(self, user_id):
+#         print("encode yes man")
+#         try:
+#             payload = {
+#                 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=300),
+#                 'iat': datetime.datetime.utcnow(),
+#                 'sub': user_id
+#             }
+#             return jwt.encode(
+#                 payload,
+#                 app.config.get('SECRET_KEY'),
+#                 algorithm='HS256'
+#             )
+#         except Exception as e:
+#             print("some error yes man")
+#             return e
 
 def  encode_auth_token(user_id):
         print("encode yes man")
@@ -57,25 +57,26 @@ def  encode_auth_token(user_id):
             print("some error yes man")
             return e
 
-class App_Developer(User, db.Model):
-    __tablename__ = 'app_developer'
+# class App_Developer(User, db.Model):
+#     __tablename__ = 'app_developer'
 
-class Data_Scientist(User, db.Model):
-    __tablename__ = 'data_scientist'
+# class Data_Scientist(User, db.Model):
+#     __tablename__ = 'data_scientist'
 
-class End_User(User, db.Model):
-    __tablename__ = 'end_user'
+# class End_User(User, db.Model):
+#     __tablename__ = 'end_user'
 
-userDict = {
-        "App_Developer": App_Developer,
-        "Data_Scientist": Data_Scientist,
-        "End_User": End_User
-    }
-UserDict_MONGO = {
-    "Data_Scientist" : dbname["Data_Scientist"], 
-    "App_Developer" : dbname["App_Developer"],
-    "End_User" :  dbname["End_User"]
-}
+# userDict = {
+#         "App_Developer": App_Developer,
+#         "Data_Scientist": Data_Scientist,
+#         "End_User": End_User
+#     }
+# UserDict_MONGO = {
+#     "Data_Scientist" : dbname["Data_Scientist"], 
+#     "App_Developer" : dbname["App_Developer"],
+#     "End_User" :  dbname["End_User"],
+#     "Platform_Configurer" :  dbname["Platform_Configurer"]
+# }
 
 @app.route('/create_user/<user_type>', methods = ['POST'])
 def do_signup(user_type):
@@ -111,7 +112,7 @@ def do_signup(user_type):
         #     return make_response(jsonify(responseObject)), 200
 
 
-        mongo_user = UserDict_MONGO[user_type].find_one({'username' : user["username"]})
+        mongo_user = dbname[user_type].find_one({'username' : user["username"]})
         #print(mongo_user['_id'])
         
         if(mongo_user is not None):
@@ -123,7 +124,7 @@ def do_signup(user_type):
             return make_response(jsonify(responseObject)), 409
         else:
             print("yes man")
-            user = UserDict_MONGO[user_type].insert_one(user)
+            user = dbname[user_type].insert_one(user)
             
             auth_token = encode_auth_token(str(user.inserted_id) )
             responseObject = {
@@ -169,7 +170,7 @@ def authenticate(user_type):
         #         }
         #     return make_response(jsonify(responseObject)), 401
 
-        temp_user = UserDict_MONGO[user_type].find_one({'username':user['username']})
+        temp_user = dbname[user_type].find_one({'username':user['username']})
         if(temp_user is not None):
             print(str(temp_user['_id']))
             if(user['password'] == temp_user['password']):
@@ -196,11 +197,11 @@ def authenticate(user_type):
             return make_response(jsonify(responseObject)), 401
 
 if(__name__ == '__main__'):
-    db.create_all()
-    userDict = {
-        "App_Developer": App_Developer,
-        "Data_Scientist": Data_Scientist,
-        "End_User": End_User
-    }
+    # db.create_all()
+    # userDict = {
+    #     "App_Developer": App_Developer,
+    #     "Data_Scientist": Data_Scientist,
+    #     "End_User": End_User
+    # }
     app.run(host ='127.0.0.1',port=5001,debug=True)
     

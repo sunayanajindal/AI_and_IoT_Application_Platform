@@ -43,9 +43,8 @@
       </div>
         <h1>Success</h1> 
         <p>We received your request;<br/> we'll Deploy it shortly!</p>
-        <form action="/Dashboard/{{user_type}}" method="post">
-            <button name="forwardBtn" type="submit">Dashboard</button>
-            <input type="hidden" name="username" value="{{ username }}" />
+        <form action="{{REQUEST_MANAGER}}/" method="get">
+            <button name="forwardBtn" type="submit">Proceed</button>
         </form>
         
         <!-- <button type="button" class="btn btn-dark">Dark</button> -->

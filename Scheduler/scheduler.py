@@ -13,6 +13,6 @@ def home():
 
 def renderUI():
     app.use_reloader=False
-    app.run(port=5010)
+    app.run(port=5011,debug=True)
 
 renderUI()
