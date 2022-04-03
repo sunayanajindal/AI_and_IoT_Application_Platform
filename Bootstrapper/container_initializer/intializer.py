@@ -4,13 +4,18 @@ import os
 from flask import Flask , request
 from pymongo import MongoClient
 from azure.mgmt.compute import ComputeManagementClient
-
+from azure.storage.fileshare import ShareFileClient
+from azure.storage.fileshare import ShareDirectoryClient
+from azure.storage.fileshare import ShareClient
 # app = Flask(__name__)
 # app.config['SECRET_KEY'] = 'secretkey'
 
 CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
 client = MongoClient(CONNECTION_STRING)
 dbname = client['nodeManager']
+connection_string = "DefaultEndpointsProtocol=https;AccountName=storageias;AccountKey=tnxGtqqFpuRfoJMxRR7H5evonZ0P+2dZVoV+VSTHKqOSyxkMIihIUMsXQ7KM+eLguN2/b8ncl3S9+AStZRvImg==;EndpointSuffix=core.windows.net"
+file_client = ShareClient.from_connection_string(conn_str=connection_string,share_name="testing-file-share",file_path="uploaded_file.py")
+share_name="testing-file-share"
 
 app = dbname["node"]
 
@@ -25,6 +30,90 @@ f2 = open('./Bootstrapper/vm_details.json')
 vm_details = json.load(f2)
 f3 = open('./Bootstrapper/container_initializer/initializer_config.json')
 initialize_details = json.load(f3)
+
+# def create_directory(dir_name):
+#     try:
+#         dir_client = ShareDirectoryClient.from_connection_string(connection_string, share_name, dir_name)
+
+#         print("Creating directory:", share_name + "/" + dir_name)
+#         dir_client.create_directory()
+
+#     except Exception as ex:
+#         print("ResourceExistsError:", ex.message)
+
+# def Upload_file_and_create_dir(folder_name,filepath):
+#     try:
+#         create_directory(folder_name)
+#         destination_file_path=folder_name+'/'+os.path.basename(filepath)
+#         print(destination_file_path)
+#         file_client = ShareFileClient.from_connection_string(connection_string, share_name, destination_file_path)
+
+#         with open(filepath, "rb") as source_file:
+#             file_client.upload_file(source_file)
+
+#         print("Succesfully Uploaded")
+#     except Exception as E:
+#         print("File_NOT_found Error")
+
+# def upload_file(folder_name,filepath):
+#     try:
+#         destination_file_path=folder_name+'/'+os.path.basename(filepath)
+#         print(destination_file_path)
+#         file_client = ShareFileClient.from_connection_string(connection_string, share_name, destination_file_path)
+
+#         with open(filepath, "rb") as source_file:
+#             file_client.upload_file(source_file)
+
+#         print("Succesfully Uploaded")
+#     except Exception as E:
+#         print("File_NOT_found Error")
+
+# def download_azure_file(dir_name, file_name):
+#     try:
+#         # Build the remote path
+#         source_file_path = dir_name + "/" + file_name
+
+#         # Add a prefix to the filename to 
+#         # distinguish it from the uploaded file
+
+#         cmd = f"mkdir {dir_name}"
+
+#         os.system(cmd)
+#         dest_file_name = dir_name + "/" +file_name
+
+#         # Create a ShareFileClient from a connection string
+#         file_client = ShareFileClient.from_connection_string(
+#             connection_string, share_name, source_file_path)
+
+#         print("Downloading to:", dest_file_name)
+
+#         # Open a file for writing bytes on the local system
+#         with open(dest_file_name, "wb") as data:
+#             # Download the file from Azure into a stream
+#             stream = file_client.download_file()
+#             # Write the stream to the local file
+#             data.write(stream.readall())
+
+#     except ResourceNotFoundError as ex:
+#         print("ResourceNotFoundError:", ex.message)
+
+# def download_files(folder_name):
+
+# 	my_directory_client = file_client.get_directory_client(directory_path=folder_name)
+
+# 	my_list = list(my_directory_client.list_directories_and_files())
+
+# 	for file in my_directory_client.list_directories_and_files():
+
+#     	# print(file["name"])
+
+#         file.isdir():
+#         pass
+#         else:
+
+
+# 		# print(folder_name,file["name"])
+# 		download_azure_file(folder_name,file["name"])
 
 def initialize_docker_env(vm_ip):
     s = paramiko.SSHClient()
@@ -227,8 +316,14 @@ def restart():
     app.updtae_one({"ip":service_ip},{"$set":{"status": "active"}})
 
 
+def upload_codebase():
+    
+
+
 if(__name__ == '__main__'):   
    
+
+    
     for key in initialize_details:
         vm_ip = vm_details[initialize_details[key]["vm_name"]]["ip"]
         source = initialize_details[key]["source"]

@@ -108,9 +108,8 @@ def sensor_requirements():
 
     selectedApp = request.form.to_dict()
 
-    for i in selectedApp:
-        given_app_id = i
-        print(i)
+    
+    given_app_id = selectedApp["common"]
 
     sensors_req = list(app_req_db.find())
 

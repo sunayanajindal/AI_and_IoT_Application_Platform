@@ -14,7 +14,7 @@
       {% for i in range(app_names|length) %} {% set x = app_ids[i] %}
       <br />
       {% set y = app_names[i] %}
-      <input type="radio" name="{{x}}" />
+      <input type="radio" name="common" value="{{x}}" />
       <label>{{y}}</label>
       <br />
       {% endfor %}
