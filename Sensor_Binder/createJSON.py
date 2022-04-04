@@ -91,7 +91,7 @@ def sensor_requirements():
 
 @app.route("/")
 def m():
-    get_sensors()
+    #get_sensors()
     return render_template("sensor_location.html", sensor_kinds = sensor_kinds, sensor_count=sensor_count)
 
 app.run(port=6005)
