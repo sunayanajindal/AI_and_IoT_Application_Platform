@@ -16,53 +16,78 @@ SCHEDULER = "http://127.0.0.1:5011"
 dbname = client['AI_PLATFORM']
 app_req_db = dbname["app_requirement"]
 
-given_app_id = "app1"
-app_sensor_data = {}
-sensor_kinds = list()
-sensor_count = list()
 
-def get_sensors():
-    app_instance = list(app_req_db.find({"app_id" : given_app_id}))
-
-    if app_instance == {}:
-        print("Error : App ID not found")
-    else:
-        # print("Application sensor requirements are : ")
-        sensor_req = app_instance[0]["sensors"]
-        # print(sensor_req)
- 
-    app_sensor_req = ast.literal_eval(sensor_req)
-
-    for  sensor_type in app_sensor_req:
-        sensor_kinds.append(sensor_type)
-        sensor_count.append(app_sensor_req[sensor_type])
-    
-    return app_sensor_req
 
 @app.route("/jsonifyRequest", methods=['POST', 'GET'])
 def sensor_requirements():
     auth_token = request.cookies.get('auth_token')
+    # request_details = {"info" : list()}
+    # new_sensor_instance = request.form.to_dict()
+    # # print(new_sensor_instance)
+    # for each in new_sensor_instance:
+    #     l = each.split('_')
+    #     # print (l)
+    #     val = {"type" : l[0] , "location" : new_sensor_instance[each]}
+    #     request_details["info"].append(val)
+
+    # # print(request_details)
+    # #SCHEDULER = new_sensor_instance["SCHEDULER"]
+    # binding_map = processRequest(request_details)
+    # scheduling_data = {"app_id": given_app_id,"info" : binding_map}
+    # # print(scheduling_data)s
+    # response=requests.post( SCHEDULER+ "/schedule_data",json=scheduling_data).content.decode()
+   
+    
+    # redir = redirect(REQUEST_MANAGER+"/Schedule/")
+    # redir.headers['Authorization'] = auth_token
+    # return redir
     request_details = {"info" : list()}
     new_sensor_instance = request.form.to_dict()
     # print(new_sensor_instance)
+    given_app_id=new_sensor_instance["given_app_id"]
+    del new_sensor_instance["given_app_id"]
+    sensor_kinds = new_sensor_instance["sensor_kinds"]
+    sensor_kinds = sensor_kinds[1:-1].split(",")
+    temp = []
+    for x in sensor_kinds:
+        temp.append(x.strip()[1:-1])
+    sensor_kinds = temp
+    print(sensor_kinds)
+
+    del new_sensor_instance["sensor_kinds"]
+
+    sensor_count = new_sensor_instance["sensor_count"]
+    print(type(sensor_count))
+    del new_sensor_instance["sensor_count"]
+    sensor_count = sensor_count[1:-1].split(",")
+    temp = []
+    for x in sensor_count:
+        temp.append(int(x.strip()))
+    sensor_count = temp
+    print(sensor_count)
+
     for each in new_sensor_instance:
         l = each.split('_')
         # print (l)
-        val = {"type" : l[0] , "location" : new_sensor_instance[each]}
+        val = {"type" : l[0] , "location" : new_sensor_instance[each], "serial_num" : l[1]}
         request_details["info"].append(val)
 
-    # print(request_details)
-    #SCHEDULER = new_sensor_instance["SCHEDULER"]
     binding_map = processRequest(request_details)
-    scheduling_data = {"app_id": given_app_id,"info" : binding_map}
-    # print(scheduling_data)s
-    response=requests.post( SCHEDULER+ "/schedule_data",json=scheduling_data).content.decode()
-   
-    
-    redir = redirect(REQUEST_MANAGER+"/Schedule/")
-    redir.headers['Authorization'] = auth_token
-    return redir
+    print(binding_map)
+    if binding_map == None:
+        print("Error")
+        # redir = redirect(REQUEST_MANAGER+"/sensor_location", code=307)
+        # redir.headers['Authorization'] = auth_token
+        return redirect(REQUEST_MANAGER+"/sensor_location/", code=307)
+        #return render_template("sensor_location.html", error='Sensor not available', given_app_id=given_app_id, sensor_kinds=sensor_kinds, sensor_count=sensor_count)
 
+    else:
+        scheduling_data = {"app_id": given_app_id,"info" : binding_map}
+        print(scheduling_data)
+        response=requests.post( SCHEDULER+ "/schedule_data",json=scheduling_data).content.decode()
+        redir = redirect(REQUEST_MANAGER+"/Schedule/")
+        redir.headers['Authorization'] = auth_token
+        return redir
 
 @app.route("/")
 def m():

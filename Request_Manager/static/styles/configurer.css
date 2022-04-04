@@ -1,8 +1,4 @@
-<!-- <link rel="stylesheet" href="app_sensor.css" type="text/css"> -->
-<!DOCTYPE html>
-<html>
-<style>
-  @import url(https://fonts.googleapis.com/css?family=Roboto);
+@import url(https://fonts.googleapis.com/css?family=Roboto);
 
   body,
   input,
@@ -31,7 +27,7 @@
     background-image: linear-gradient(top, #f2f2f2, #e6e6e6); */
     background-image: url(https://www.nicepng.com/png/detail/48-481155_clipart-royalty-free-technology-pattern-png-for-free.png);
     background-size: fixed;
-    background-color: rgb(120, 138, 238);
+    background-color: rgb(148, 163, 245);
   }
 
   h1 {
@@ -42,7 +38,7 @@
   h3 {
     text-align: center;
   }
-  .container1 {
+  .container {
     position: relative;
     max-width: 40rem;
     margin: 5rem auto;
@@ -53,7 +49,7 @@
     border-radius: 1px;
   }
 
-  .container1::before {
+  .container::before {
     content: '';
     position: absolute;
     top: 0;
@@ -70,12 +66,12 @@
     z-index: -1;
   }
 
-  .container1:hover::before {
+  .container:hover::before {
     -webkit-transform: scale(1);
     transform: scale(1);
   }
 
-  .button-container1 {
+  .button-container {
     text-align: center;
   }
 
@@ -86,13 +82,13 @@
   }
 
   .form-radio,
-  .form-group1 {
+  .form-group {
     position: relative;
     margin-top: 2.25rem;
     margin-bottom: 2.25rem;
   }
 
-  .form-inline>.form-group1,
+  .form-inline>.form-group,
   .form-inline>.btn {
     display: inline-block;
     margin-bottom: 0;
@@ -106,15 +102,15 @@
   }
 
 
-  .form-group1 input {
+  .form-group input {
     height: 1.9rem;
   }
 
-  .form-group1 textarea {
+  .form-group textarea {
     resize: none;
   }
 
-  .form-group1 select {
+  .form-group select {
     width: 100%;
     font-size: 1rem;
     height: 1.6rem;
@@ -125,7 +121,7 @@
     box-shadow: none;
   }
 
-  .form-group1 .control-label {
+  .form-group .control-label {
     position: absolute;
     top: 0.25rem;
     pointer-events: none;
@@ -138,13 +134,13 @@
     transition: all 0.28s ease;
   }
 
-  .form-group1 .bar {
+  .form-group .bar {
     position: relative;
     border-bottom: 0.0625rem solid #999;
     display: block;
   }
 
-  .form-group1 .bar::before {
+  .form-group .bar::before {
     content: '';
     height: 0.125rem;
     width: 0;
@@ -157,8 +153,8 @@
     z-index: 2;
   }
 
-  .form-group1 input,
-  .form-group1 textarea {
+  .form-group input,
+  .form-group textarea {
     display: block;
     background: none;
     padding: 0.125rem 0.125rem 0.0625rem;
@@ -173,56 +169,56 @@
     box-shadow: none;
   }
 
-  .form-group1 input[type="file"] {
+  .form-group input[type="file"] {
     line-height: 1;
   }
 
-  .form-group1 input[type="file"]~.bar {
+  .form-group input[type="file"]~.bar {
     display: none;
   }
 
-  .form-group1 select,
-  .form-group1 input:focus,
-  .form-group1 input:valid,
-  .form-group1 input.form-file,
-  .form-group1 input.has-value,
-  .form-group1 textarea:focus,
-  .form-group1 textarea:valid,
-  .form-group1 textarea.form-file,
-  .form-group1 textarea.has-value {
+  .form-group select,
+  .form-group input:focus,
+  .form-group input:valid,
+  .form-group input.form-file,
+  .form-group input.has-value,
+  .form-group textarea:focus,
+  .form-group textarea:valid,
+  .form-group textarea.form-file,
+  .form-group textarea.has-value {
     color: #333;
   }
 
-  .form-group1 select~.control-label,
-  .form-group1 input:focus~.control-label,
-  .form-group1 input:valid~.control-label,
-  .form-group1 input.form-file~.control-label,
-  .form-group1 input.has-value~.control-label,
-  .form-group1 textarea:focus~.control-label,
-  .form-group1 textarea:valid~.control-label,
-  .form-group1 textarea.form-file~.control-label,
-  .form-group1 textarea.has-value~.control-label {
+  .form-group select~.control-label,
+  .form-group input:focus~.control-label,
+  .form-group input:valid~.control-label,
+  .form-group input.form-file~.control-label,
+  .form-group input.has-value~.control-label,
+  .form-group textarea:focus~.control-label,
+  .form-group textarea:valid~.control-label,
+  .form-group textarea.form-file~.control-label,
+  .form-group textarea.has-value~.control-label {
     font-size: 0.8rem;
     color: gray;
     top: -1rem;
     left: 0;
   }
 
-  .form-group1 select:focus,
-  .form-group1 input:focus,
-  .form-group1 textarea:focus {
+  .form-group select:focus,
+  .form-group input:focus,
+  .form-group textarea:focus {
     outline: none;
   }
 
-  .form-group1 select:focus~.control-label,
-  .form-group1 input:focus~.control-label,
-  .form-group1 textarea:focus~.control-label {
+  .form-group select:focus~.control-label,
+  .form-group input:focus~.control-label,
+  .form-group textarea:focus~.control-label {
     color: #337ab7;
   }
 
-  .form-group1 select:focus~.bar::before,
-  .form-group1 input:focus~.bar::before,
-  .form-group1 textarea:focus~.bar::before {
+  .form-group select:focus~.bar::before,
+  .form-group input:focus~.bar::before,
+  .form-group textarea:focus~.bar::before {
     width: 100%;
     left: 0;
   }
@@ -230,12 +226,12 @@
 
 
   .has-error .legend.legend,
-  .has-error.form-group1 .control-label.control-label {
+  .has-error.form-group .control-label.control-label {
     color: #d9534f;
   }
 
-  .has-error.form-group1 .form-help,
-  .has-error.form-group1 .helper,
+  .has-error.form-group .form-help,
+  .has-error.form-group .helper,
   .has-error.checkbox .form-help,
   .has-error.checkbox .helper,
   .has-error.radio .form-help,
@@ -308,54 +304,3 @@
   .button:focus {
     outline: none;
   }
-</style>
-
-<head>
-  <title>{{title}}</title>
-  <meta charset="utf-8" />
-  <meta name="description" content="{{description}}" />
-  <link rel="shortcut icon" href="/favicon.ico" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-</head>
-
-<body>
-  <div class= "container1">
-  {% if error != '' %}
-  <div class="alert alert-danger" role="alert">
-    {{error}}
-  </div>
-    <form>
-      <input type="hidden" name="given_app_id" value="{{given_app_id}}">
-      <input type="hidden" name="sensor_kinds" value="{{sensor_kinds}}">
-      <input type="hidden" name="sensor_count" value="{{sensor_count}}">
-    </form>
-  
-  {% endif %}
-  <form action="{{URL}}/jsonifyRequest" method="post">
-    {% for i in range(sensor_kinds|length) %} {% for j in
-    range(sensor_count[i]) %} {% set n = '' + sensor_kinds[i] + '_' + (j|string) %}
-    <div class="form-group1">
-    <label>{{n}} location</label>
-    <br />
-    <input type="text" name="{{n}}" />
-
-    <!-- trying to send app id-->
-
-    <input type="hidden" name="given_app_id" value="{{given_app_id}}">
-    <input type="hidden" name="sensor_kinds" value="{{sensor_kinds}}">
-    <input type="hidden" name="sensor_count" value="{{sensor_count}}">
-    <br />
-    <br />
-  </div> 
-    {% endfor %} {% endfor %}
-    
-    <div class="button-container">
-      <button type="submit" class="button"><span>Submit</span></button>
-    </div>
- 
-  </form>  
-  </div>  
-</body>
-
-</html>

@@ -6,7 +6,7 @@ from pymongo import MongoClient
 
 CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
 client = MongoClient(CONNECTION_STRING)
-dbname = client['sensor']
+dbname = client['AI_PLATFORM']
 SENSOR_INSTANCES_DB = dbname["SENSOR_INSTANCES"]
 
 
@@ -21,8 +21,9 @@ def processRequest(appSensorReq):
     for i in appSensorReq['info']:
         currentSensorReq = i['type'] + i['location']
         sensorAvailable = False
-
-        for j in range(len(sensorInstances)):   
+        
+        for j in range(len(sensorInstances)): 
+            print(sensorInstances[j]['type'],sensorInstances[j]['location'])  
             if sensorInstances[j]['type'] == i['type'] and sensorInstances[j]['location'] == i['location'] and busy_sensor_map[j] == 0:
                 busy_sensor_map[j] = 1
                 count = alotted_sensors.get(currentSensorReq, 0)

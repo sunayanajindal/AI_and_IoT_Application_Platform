@@ -1,14 +1,4 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    
-    <title>{{title}}</title>
-    <meta charset="utf-8" />
-    <meta name="description" content="{{description}}" />
-    <link rel="shortcut icon" href="/favicon.ico" />
-  </head>
-  <style>
-   @import url(https://fonts.googleapis.com/css?family=Roboto);
+@import url(https://fonts.googleapis.com/css?family=Roboto);
 body,
 input,
 select,
@@ -30,26 +20,26 @@ body *::before {
 }
 
 body {
-  background-image: url(https://www.nicepng.com/png/detail/48-481155_clipart-royalty-free-technology-pattern-png-for-free.png);
-  
+  background-image: -webkit-linear-gradient(top, #f2f2f2, #e6e6e6);
+  background-image: linear-gradient(top, #f2f2f2, #e6e6e6);
 }
 
 h1 {
   font-size: 2rem;
   text-align: center;
-  margin: 0 0 2em;
+  margin: 0 0 2rem;
 }
 
 .container {
   position: relative;
-  max-width: 40rem;
+  max-width: 50rem;
   margin: 5rem auto;
-  background: #fff;
+  background-color: #d9534f;
   width: 100%;
   padding: 3rem 5rem 0;
   border-radius: 1px;
 }
-.container::before {
+.pcoded-main-container::before {
   content: '';
   position: absolute;
   top: 0;
@@ -65,7 +55,7 @@ h1 {
   transition: transform 0.28s ease-in-out, -webkit-transform 0.28s ease-in-out;
   z-index: -1;
 }
-.container:hover::before {
+.pcoded-main-container:hover::before {
   -webkit-transform: scale(1);
           transform: scale(1);
 }
@@ -421,30 +411,3 @@ fieldset {
 .button:focus {
   outline: none;
 }
-
-    
-  </style>
-  <body>
-  <div class=container>
-    
-    <form action="{{URL}}/sensor_location/" method="post">
-      <h1> Application </h1>
-      <label>Select Application: </label>
-      <br />
-      {% for i in range(app_names|length) %} {% set x = app_ids[i] %}
-      <br />
-      {% set y = app_names[i] %}
-      <input type="radio" name="{{x}}" />
-      <label>{{y}}</label>
-      <br />
-      {% endfor %}
-      <br />
-      <div class="button-container">
-        <button type="submit" class="button"><span>Submit</span></button>
-      </div>
-      
-
-    </form>
-  </div>
-  </body>
-</html>

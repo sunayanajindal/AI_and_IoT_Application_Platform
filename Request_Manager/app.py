@@ -13,7 +13,7 @@ import certifi
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
 
-REQUEST_MANAGER = 'http://127.0.0.1:5000'
+REQUEST_MANAGER = 'http://localhost:5000'
 AUTHENTICATION_MANAGER = 'http://127.0.0.1:5001'
 MODEL_APP_REPO = 'http://127.0.0.1:5002'
 DEPLOYER = "http://127.0.0.1:5005"
@@ -88,6 +88,7 @@ def dashboard(user_type, auth_token ="" ):
         response = make_response(render_template("choose_app.html", app_names=app_names, app_ids=app_ids))
         #response = make_response(render_template("choose_app.html",URL = APP_CONFIGURER,user_type=user_type))
     else:
+
         response = make_response(render_template("dashboard.html",user_type=user_type,DEPLOYER = DEPLOYER))
     # if user_type == "Data_Scientist":
     #     response = make_response(render_template("data_sci_dashboard.html",response = model_list))
@@ -100,7 +101,7 @@ def dashboard(user_type, auth_token ="" ):
     return response 
     #return requests.post(SCHEDULER_ADDRESS,headers={'Authorization': session["auth_token"]},json={'username':username,'role':role})
 
-@app.route("/sensor_location", methods=['POST', 'GET'])
+@app.route("/sensor_location/", methods=['POST', 'GET'])
 def sensor_requirements():
     app_sensor_data = {}
     sensor_kinds = list()
@@ -108,20 +109,31 @@ def sensor_requirements():
 
     selectedApp = request.form.to_dict()
 
-    
-    given_app_id = selectedApp["common"]
+    error = ""
+    for i in selectedApp:
+        given_app_id = i
 
+    print(given_app_id)
     sensors_req = list(app_req_db.find())
 
     for app_instance in sensors_req:
         if app_instance["app_id"] == given_app_id:
             app_sensor_data = app_instance
 
-    if app_sensor_data == {}:
-        print("Error : App ID not found")
-    else:
+    print(app_sensor_data)    
+
+    try:
         print("Application sensor requirements are : ",
-              app_sensor_data["sensors"])
+            app_sensor_data["sensors"])
+    except:
+        error = "Not Enough Sensors!"
+        given_app_id = request.form.to_dict()["given_app_id"]
+        for app_instance in sensors_req:
+            if app_instance["app_id"] == given_app_id:
+                app_sensor_data = app_instance
+        print("Application sensor requirements are : ",
+            app_sensor_data["sensors"])
+
 
     app_sensor_req = ast.literal_eval(app_sensor_data["sensors"])
 
@@ -129,7 +141,7 @@ def sensor_requirements():
         sensor_kinds.append(sensor_type)
         sensor_count.append(app_sensor_req[sensor_type])
 
-    return render_template("sensor_location.html", SCHEDULER = SCHEDULER, URL = SENSOR_BINDER,sensor_kinds=sensor_kinds, sensor_count=sensor_count)
+    return render_template("sensor_location.html", error=error, given_app_id = given_app_id, SCHEDULER = SCHEDULER, URL = SENSOR_BINDER,sensor_kinds=sensor_kinds, sensor_count=sensor_count)
 
 @app.route('/register/<user_type>', methods = ['POST'])
 def register(user_type):

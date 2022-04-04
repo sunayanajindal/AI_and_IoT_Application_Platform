@@ -1,91 +1,92 @@
 <head>
     <title>Sensor Configurer</title>
-  </head>
-    <link rel="stylesheet" href="../static/styles/sensorUI.css">
-    <body>
+    
+</head>
+<link rel="stylesheet" href="../static/styles/configurer.css">
+
+<body >
     <div class="container">
         <h1>Sensor Configuration</h1>
 
-        <button id = "newtypebutton">Add new sensor type</button>
-        <button id = "newinstancebutton">Add new instance of existing sensor type</button>
-    </div>
-    <div id="newinstance">
-        <form action="{{URL}}/new_instance" method="POST">
-            <br>
-            <label>Sensor Type</label>
-            <br>
-            <input type="text" name="type">
-            <br>
+        <button id="newtypebutton" >Add new sensor type</button>
+        <button id="newinstancebutton">Add new instance of existing sensor type</button>
 
-            <br>
-            <label>Location</label>
-            <br>
-            <input type="text" name="location">
-            <br>
+        <div id="newinstance" display = "none">
+            <form action="{{URL}}/new_instance" method="POST" >
+                <br>
+                <br>
+                <div class="form-group">
+                    <input type="text" name="type">
+                    <label for="input" class="control-label">Sensor Type</label><i class="bar"></i>
+                </div>
 
-            <br>
-            <label>IP</label>
-            <br>
-            <input type="text" name="ip">
-            <br>
+                <div class="form-group">
+                    <input type="text" name="location">
+                    <label for="input" class="control-label">Location</label><i class="bar"></i>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="ip">
+                    <label for="input" class="control-label">IP</label><i class="bar"></i>
 
-            <br>
-            <label>Port</label>
-            <br>
-            <input type="text" name="port">
-            <br>
-            <input type="hidden" name="username" value="{{ username }}" />
-              <input type="hidden" name="token" value="{{ token }}" />
-              <input type="hidden" name="user_type" value="{{ user_type }}" />    
-            <br>
-            <input type="submit">
-            
-        </form>
-    </div>
+                </div>
+                <div class="form-group">
 
-    <div id="newtype">
-        <form action="{{URL}}/new_type" method="post">
-            <br>
-            <label>Sensor Type</label>
-            <br>
-            <input type="text" name="type">
-            <br>
+                    <input type="text" name="port">
+                    <label for="input" class="control-label">Port</label><i class="bar"></i>
+                </div>
+                <input type="hidden" name="username" value="{{ username }}" />
+                <input type="hidden" name="token" value="{{ token }}" />
+                <input type="hidden" name="user_type" value="{{ user_type }}" />
+                <br>
+                <!-- <input type="submit"> -->
+                <div class="button-container">
+                    <button type="submit" class="button"><span>Submit</span></button>
+                </div>
+            </form>
+        </div>
 
-    
-            <br>
-            <label>Format</label>
-            <br>
-            <input type="text" name="input_format">
-            <br>
+        <div id="newtype">
+            <form action="{{URL}}/new_type" method="post">
+                <div class="form-group">
+                    <input type="text" name="type">
+                    <label for="input" class="control-label">Sensor Type</label><i class="bar"></i>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="input_format">
+                    <label for="input" class="control-label">Format</label><i class="bar"></i>
 
-
-            <br>
-            <label>Data Rate (sec)</label>
-            <br>
-            <input type="number" name="data_rate">
-            <br>
-            <input type="hidden" name="username" value="{{ username }}" />
-              <input type="hidden" name="token" value="{{ token }}" />
-              <input type="hidden" name="user_type" value="{{ user_type }}" />
-            <br>
-            <input type="submit">
-        </form>
+                </div>
+                <div class="form-group">
+                    <input type="number" name="data_rate">
+                    <label for="input" class="control-label">Data Rate(in sec)</label><i class="bar"></i>
+                </div>
+                <input type="hidden" name="username" value="{{ username }}" />
+                <input type="hidden" name="token" value="{{ token }}" />
+                <input type="hidden" name="user_type" value="{{ user_type }}" />
+                <br>
+                <!-- <input type="submit"> -->
+                <div class="button-container">
+                    <button type="submit" class="button"><span>Submit</span></button>
+                </div>
+            </form>
+        </div>
     </div>
     <script>
         const targetDiv1 = document.getElementById("newtype");
         const btn1 = document.getElementById("newtypebutton");
         const targetDiv2 = document.getElementById("newinstance");
         const btn2 = document.getElementById("newinstancebutton");
-
+        targetDiv2.style.display = "none";
+        targetDiv1.style.display = "none";
         btn1.onclick = function () {
             targetDiv2.style.display = "none";
             targetDiv1.style.display = "block";
         };
 
-        
+
         btn2.onclick = function () {
             targetDiv1.style.display = "none";
             targetDiv2.style.display = "block";
         };
     </script>
-    </body>
+</body>
