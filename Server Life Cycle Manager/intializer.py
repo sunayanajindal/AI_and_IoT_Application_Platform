@@ -19,16 +19,16 @@ share_name="testing-file-share"
 
 app = dbname["node"]
 
-f = open('./Bootstrapper/subscription_config.json')
+f = open('~/Service_Life_Cycle_Manager/subscription_config.json')
 subs = json.load(f)
 subscription_id = subs["id"]
 credentials = subs["credentials"]
 
-f1 = open('./Bootstrapper/vm_user_config.json')
+f1 = open('~/Service_Life_Cycle_Manager/vm_user_config.json')
 vm_user = json.load(f1)
-f2 = open('./Bootstrapper/vm_details.json')
+f2 = open('~/Service_Life_Cycle_Manager/vm_details.json')
 vm_details = json.load(f2)
-f3 = open('./Bootstrapper/container_initializer/initializer_config.json')
+f3 = open('~/Service_Life_Cycle_Manager/container_initializer/initializer_config.json')
 initialize_details = json.load(f3)
 
 # def create_directory(dir_name):

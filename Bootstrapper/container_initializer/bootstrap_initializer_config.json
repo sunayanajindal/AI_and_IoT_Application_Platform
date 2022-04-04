@@ -1,0 +1,8 @@
+{
+    "Service_Life_Cycle_Manager":{
+        "port":5000,
+        "vm_name": "VM1",
+        "source": "./Service_Life_Cycle_Manager",
+        "destination": "~/Service_Life_Cycle_Manager/"
+    }
+}

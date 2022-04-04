@@ -126,7 +126,7 @@ def do_signup(user_type):
             print("yes man")
             user = dbname[user_type].insert_one(user)
             
-            auth_token = encode_auth_token(str(user.inserted_id) )
+            auth_token = encode_auth_token(str(user['username']) )
             responseObject = {
                 'status': 'Success',
                 'message': "Success",
@@ -172,10 +172,10 @@ def authenticate(user_type):
 
         temp_user = dbname[user_type].find_one({'username':user['username']})
         if(temp_user is not None):
-            print(str(temp_user['_id']))
+            print(str(temp_user['username']))
             if(user['password'] == temp_user['password']):
                 #login_user(user)
-                auth_token = encode_auth_token(str(temp_user['_id']))
+                auth_token = encode_auth_token(str(temp_user['username']))
                 if auth_token:
                     responseObject = {
                         'status': 'Success',

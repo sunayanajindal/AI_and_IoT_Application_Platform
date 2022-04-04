@@ -103,6 +103,17 @@ def dashboard(user_type, auth_token ="" ):
 
 @app.route("/sensor_location/", methods=['POST', 'GET'])
 def sensor_requirements():
+    user_type = "End_User"
+    if auth_token == "":
+        auth_token = request.headers.get('Authorization')
+    if auth_token == None:
+        auth_token = request.cookies.get('auth_token')
+    
+    try:
+        payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'),algorithms=['HS256'])
+    except:
+        return session_expired(user_type,'')
+
     app_sensor_data = {}
     sensor_kinds = list()
     sensor_count = list()
@@ -141,7 +152,7 @@ def sensor_requirements():
         sensor_kinds.append(sensor_type)
         sensor_count.append(app_sensor_req[sensor_type])
 
-    return render_template("sensor_location.html", error=error, given_app_id = given_app_id, SCHEDULER = SCHEDULER, URL = SENSOR_BINDER,sensor_kinds=sensor_kinds, sensor_count=sensor_count)
+    return render_template("sensor_location.html", error=error, given_app_id = given_app_id, username = payload['sub'], SCHEDULER = SCHEDULER, URL = SENSOR_BINDER,sensor_kinds=sensor_kinds, sensor_count=sensor_count)
 
 @app.route('/register/<user_type>', methods = ['POST'])
 def register(user_type):
