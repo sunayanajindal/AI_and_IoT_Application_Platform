@@ -1,6 +1,7 @@
 import paramiko
 import json
 import os
+import time
 from flask import Flask , request
 from pymongo import MongoClient
 from azure.mgmt.compute import ComputeManagementClient
@@ -115,6 +116,35 @@ initialize_details = json.load(f3)
 # 		# print(folder_name,file["name"])
 # 		download_azure_file(folder_name,file["name"])
 
+def initialize_env(vm_ip):
+    s = paramiko.SSHClient()
+    s.load_system_host_keys()
+    s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    s.connect(vm_ip, 22, vm_user["username"], vm_user["password"])
+
+    build_cmd = "pip3"
+    stdin,stdout,stderr = s.exec_command(build_cmd)
+    lines = stdout.readlines()
+    print(lines)
+
+    if len(lines)<=10:
+        build_cmd = "sudo apt install python3-pip"
+        stdin,stdout,stderr = s.exec_command(build_cmd)
+        lines = stdout.readlines()
+        print(lines)
+    else:
+        print("python3-pip Present!")
+
+    build_cmd = "pip install azure-storage-file-share"
+    stdin,stdout,stderr = s.exec_command(build_cmd)
+    lines = stdout.readlines()
+    print(lines)
+
+    build_cmd = "pip install azure-storage-file-share"
+    stdin,stdout,stderr = s.exec_command(build_cmd)
+    lines = stdout.readlines()
+    print(lines)
+
 def initialize_docker_env(vm_ip):
     s = paramiko.SSHClient()
     s.load_system_host_keys()
@@ -159,7 +189,7 @@ def initialize_docker_env(vm_ip):
     else:
         print("Docker Environment Present!")
 
-def upload_container(service_name,vm_ip,source,destination):
+def upload_container(service_name,vm_ip,source,destination,source_path,folder_name):
     client=paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     #client.connect("20.213.161.182", 22, "IASHackathon1", "IASHackathon1")
@@ -181,22 +211,33 @@ def upload_container(service_name,vm_ip,source,destination):
             break;
     
     if flag == False:
-        for path,dirs,files in os.walk(localfolder):
-            if path.lstrip(localfolder)!=None:       
-                extrapath=path.split(basefolder)[-1]   
-                command="cd root"  
-                stdin,stdout,stderr = client.exec_command(command)
-                command="mkdir {}".format(extrapath)
-                client.exec_command(command)
-                lines = stdout.readlines()   
-                print(lines)
+        sftp_client.put('./Bootstrapper/container_initializer/download_code_base.py' , './download_code_base.py')
+        time.sleep(0.5)
+        command="python3 download_code_base.py "+source_path+" "+ folder_name
+        stdin,stdout,stderr =client.exec_command(command)
+        lines = stdout.readlines()   
+        print(lines)
+
+        command="sudo rm download_code_base.py"
+        stdin,stdout,stderr =client.exec_command(command)
+        lines = stdout.readlines()   
+        print(lines)
+        # for path,dirs,files in os.walk(localfolder):
+        #     if path.lstrip(localfolder)!=None:       
+        #         extrapath=path.split(basefolder)[-1]   
+        #         command="cd root"  
+        #         stdin,stdout,stderr = client.exec_command(command)
+        #         command="mkdir {}".format(extrapath)
+        #         client.exec_command(command)
+        #         lines = stdout.readlines()   
+        #         print(lines)
                 
-            for file in files:  
-                filepath=os.path.join(path,file)
-                extrapath=path.split(basefolder)[-1]
-                command="cd root"  
-                stdin,stdout,stderr = client.exec_command(command)
-                sftp_client.put(filepath,"{}/{}".format(extrapath,file))
+        #     for file in files:  
+        #         filepath=os.path.join(path,file)
+        #         extrapath=path.split(basefolder)[-1]
+        #         command="cd root"  
+        #         stdin,stdout,stderr = client.exec_command(command)
+        #         sftp_client.put(filepath,"{}/{}".format(extrapath,file))
     else:
         print(service_name+" Dir already Present")
 
@@ -316,25 +357,24 @@ def restart():
     app.updtae_one({"ip":service_ip},{"$set":{"status": "active"}})
 
 
-def upload_codebase():
-    
-
-
 if(__name__ == '__main__'):   
-   
-
     
+    #client.connect("20.213.161.182", 22, "IASHackathon1", "IASHackathon1")
+    #client.connect("20.216.18.166", 22, username =  "azureuser", password = "@mazingSpiderMan",allow_agent=True,look_for_keys = False)
     for key in initialize_details:
         vm_ip = vm_details[initialize_details[key]["vm_name"]]["ip"]
         source = initialize_details[key]["source"]
         destination = initialize_details[key]["destination"]
+        source_path = initialize_details[key]["source_path"]
+        folder_name = initialize_details[key]["folder_name"]
         service_name = key
         path = destination
         port = initialize_details[key]["port"]
+        initialize_env(vm_ip)
         initialize_docker_env(vm_ip)
-        upload_container(service_name,vm_ip,source,destination)
+        upload_container(service_name,vm_ip,source,destination,source_path,folder_name)
         initialize_container(service_name,vm_ip,path)
         start_container(service_name,vm_ip,port)
         print(key + " Deployed")
     
-    app.run(host ='127.0.0.1',port=8000,debug=True)
+    # app.run(host ='127.0.0.1',port=8000,debug=True)

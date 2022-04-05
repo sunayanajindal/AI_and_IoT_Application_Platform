@@ -1,9 +1,8 @@
 import paramiko
 import json
 import os
-from flask import Flask , request
-from pymongo import MongoClient
-from azure.mgmt.compute import ComputeManagementClient
+import sys
+
 from azure.storage.fileshare import ShareFileClient
 from azure.storage.fileshare import ShareDirectoryClient
 from azure.storage.fileshare import ShareClient
@@ -55,6 +54,8 @@ def download_files(source_path,folder_name):
                 
 		# download_azure_file(folder_name,file["name"])
 
-
-download_files("./AI_and_IoT_Application_Platform","Request_Manager")
-
+#download_files("./AI_and_IoT_Application_Platform","Server_Life_Cycle_Manager")
+source_path = sys.argv[1]
+folder_name = sys.argv[2]
+download_files(source_path,folder_name)
+print("Done")
