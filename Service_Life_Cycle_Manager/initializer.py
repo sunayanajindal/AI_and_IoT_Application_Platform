@@ -322,4 +322,4 @@ if(__name__ == '__main__'):
         start_container(s,service_name,vm_ip,port)
         print(key + " Deployed")
     
-    app.run(host ='127.0.0.1',port=8000,debug=True)
+    app.run(host ='0.0.0.0',port=8000,debug=True)

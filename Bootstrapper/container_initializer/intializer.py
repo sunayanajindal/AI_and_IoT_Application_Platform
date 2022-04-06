@@ -270,12 +270,12 @@ if(__name__ == '__main__'):
         s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         s.connect(vm_ip, 22, username , password)
 
-        # initialize_env(s,vm_ip)
-        # initialize_docker_env(s,vm_ip)
-        # upload_container(s,service_name,vm_ip,source,destination,source_path,folder_name)
-        # time.sleep(10)
-        # initialize_container(s,service_name,vm_ip,path)
-        # time.sleep(20)
+        initialize_env(s,vm_ip)
+        initialize_docker_env(s,vm_ip)
+        upload_container(s,service_name,vm_ip,source,destination,source_path,folder_name)
+        time.sleep(10)
+        initialize_container(s,service_name,vm_ip,path)
+        time.sleep(20)
         start_container(s,service_name,vm_ip,port)
         print(key + " Deployed")
     

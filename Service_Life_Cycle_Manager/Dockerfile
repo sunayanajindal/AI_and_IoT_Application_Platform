@@ -7,5 +7,4 @@ RUN pip3 install requests
 RUN pip3 install paramiko
 RUN pip install azure-storage-file-share
 
-ENV FLASK_APP=initializer.py
-CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
+CMD python3 initializer.py

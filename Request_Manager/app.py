@@ -13,6 +13,12 @@ import certifi
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
 
+
+CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
+client = MongoClient(CONNECTION_STRING)
+dbname = client['AI_PLATFORM']
+IP_ADDRESSES = dbname["IP_ADDRESSES"]
+
 REQUEST_MANAGER = 'http://20.216.18.166:5000'
 AUTHENTICATION_MANAGER = 'http://20.233.33.141:5001'
 MODEL_APP_REPO = 'http://127.0.0.1:5002'
@@ -24,6 +30,29 @@ SENSOR_CONFIGURER = "http://127.0.0.1:6001"
 APP_CONFIGURER = "http://127.0.0.1:6005"
 SENSOR_BINDER = "http://127.0.0.1:6005"
 
+ip_table = list(IP_ADDRESSES.find())
+for i in ip_table:
+    if 'REQUEST_MANAGER' in i:
+        REQUEST_MANAGER = i['REQUEST_MANAGER']
+    if 'AUTHENTICATION_MANAGER' in i:
+        AUTHENTICATION_MANAGER = i['AUTHENTICATION_MANAGER']
+    if 'MODEL_APP_REPO' in i:
+        MODEL_APP_REPO = i['MODEL_APP_REPO']
+    if 'DEPLOYER' in i:
+        DEPLOYER = i['DEPLOYER']
+    if 'SCHBACK' in i:
+        SCHBACK = i['SCHBACK']
+    if 'SENSOR_CONFIGURER' in i:
+        SENSOR_CONFIGURER = i['SENSOR_CONFIGURER']
+    if 'APP_CONFIGURER' in i:
+        APP_CONFIGURER = i['APP_CONFIGURER']
+    if 'SENSOR_BINDER' in i:
+        SENSOR_BINDER = i['SENSOR_BINDER']
+    if 'SCHEDULER' in i:
+        SCHEDULER = i['SCHEDULER']
+
+
+
 
 AUTH_URL = AUTHENTICATION_MANAGER + '/authenticate_user/'
 CREATE_URL = AUTHENTICATION_MANAGER + '/create_user/'
@@ -34,8 +63,6 @@ client = MongoClient(CONNECTION_STRING, tlsCAFile=certifi.where())
 
 dbname = client['AI_PLATFORM']
 app_req_db = dbname["app_requirement"]
-
-
 
 @app.route('/')
 def home():

@@ -10,7 +10,18 @@ import datetime
 app = Flask(__name__)
 
 scheduling_data =""
-REQUEST_MANAGER = "http://127.0.0.1:5000"
+
+CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
+client = MongoClient(CONNECTION_STRING)
+dbname = client['AI_PLATFORM']
+IP_ADDRESSES = dbname["IP_ADDRESSES"]
+
+REQUEST_MANAGER = 'http://20.216.18.166:5000'
+
+ip_table = list(IP_ADDRESSES.find())
+for i in ip_table:
+    if 'REQUEST_MANAGER' in i:
+        REQUEST_MANAGER = i['REQUEST_MANAGER']
 
 CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
 client = MongoClient(CONNECTION_STRING)

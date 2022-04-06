@@ -15,6 +15,15 @@
         "folder_name" : "Authentication_Manager",
         "source": "./Authentication_Manager",
         "destination": "~/Authentication_Manager/"
-    }
+    },
+
+    "Scheduler":{
+        "port":5001,
+        "vm_name": "VM1",
+        "source_path" : "./AI_and_IoT_Application_Platform",
+        "folder_name" : "Authentication_Manager",
+        "source": "./Authentication_Manager",
+        "destination": "~/Authentication_Manager/"
+    },
 
 }
