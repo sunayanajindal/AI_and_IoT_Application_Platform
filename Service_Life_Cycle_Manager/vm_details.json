@@ -1,12 +1,18 @@
 {
     "VM1" : {
         "name":"TESTVM1",
-        "ip" : "20.216.18.166",
+        "ip" : "20.233.38.212",
         "username" : "azureuser",
         "password" : "@mazingSpiderMan"
     },
     "VM2" : {
         "name":"TESTVM3",
+        "ip" : "20.233.33.141",
+        "username" : "azureuser",
+        "password" : "@mazingSpiderMan"
+    },
+    "VM3" : {
+        "name":"TESTVMK",
         "ip" : "20.233.36.78",
         "username" : "azureuser",
         "password" : "@mazingSpiderMan"

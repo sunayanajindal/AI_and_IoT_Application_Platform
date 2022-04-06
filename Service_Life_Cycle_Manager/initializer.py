@@ -37,12 +37,14 @@ def initialize_env(s,vm_ip):
     print("++++Initializing Environment")
     build_cmd = "pip3"
     stdin,stdout,stderr = s.exec_command(build_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
 
     if len(lines)<=10:
         build_cmd = "sudo apt install python3-pip"
         stdin,stdout,stderr = s.exec_command(build_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
     else:
@@ -50,11 +52,13 @@ def initialize_env(s,vm_ip):
 
     build_cmd = "pip install azure-storage-file-share"
     stdin,stdout,stderr = s.exec_command(build_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
 
     build_cmd = "pip install azure-storage-file-share"
     stdin,stdout,stderr = s.exec_command(build_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
 
@@ -62,37 +66,44 @@ def initialize_docker_env(s,vm_ip):
     print("++++Initializing Docker Environment")
     build_cmd = "docker -v"
     stdin,stdout,stderr = s.exec_command(build_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
 
     if len(lines)==0:
         build_cmd = "curl -fsSL https://get.docker.com -o get-docker.sh"
         stdin,stdout,stderr = s.exec_command(build_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
 
         buil_cmd = "sh get-docker.sh"
         stdin,stdout,stderr = s.exec_command(buil_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
 
         buil_cmd = "curl -fsSL https://test.docker.com -o test-docker.sh"
         stdin,stdout,stderr = s.exec_command(buil_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
 
         buil_cmd = "sh test-docker.sh" 
         stdin,stdout,stderr = s.exec_command(buil_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
         
         buil_cmd = "sh install.sh" 
         stdin,stdout,stderr = s.exec_command(buil_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
 
         buil_cmd = "docker -v" 
         stdin,stdout,stderr = s.exec_command(buil_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
     else:
@@ -107,6 +118,7 @@ def upload_container(s,service_name,vm_ip,source,destination,source_path,folder_
 
     command="ls"
     stdin,stdout,stderr =s.exec_command(command)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()   
     print(lines)
     flag = False
@@ -123,6 +135,7 @@ def upload_container(s,service_name,vm_ip,source,destination,source_path,folder_
         print("++++ Downloading Strating..... ")
         command="python3 download_code_base.py '"+source_path+"' '"+ folder_name +"'"
         stdin,stdout,stderr =s.exec_command(command)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()   
         print(lines)
         time.sleep(1)
@@ -154,26 +167,36 @@ def upload_container(s,service_name,vm_ip,source,destination,source_path,folder_
 
 def initialize_container(s,service_name,vm_ip,path):
     
+    buil_cmd = "[[docker images -q {"+service_name.lower()+"}]]|| echo 1"
+    #buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
+    stdin,stdout,stderr = s.exec_command(buil_cmd)
+    exit_status = stdout.channel.recv_exit_status()
+    lines = stdout.readlines()
+    print(lines)
 
     # if lines[0]!='1\n':
     print("++++Starting Docker Environemnt........  ")
     buil_cmd = "sudo systemctl start docker" 
     stdin,stdout,stderr = s.exec_command(buil_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
 
     buil_cmd = "sudo systemctl enable docker" 
     stdin,stdout,stderr = s.exec_command(buil_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
     time.sleep(1)
     buil_cmd = "sudo systemctl status docker" 
     stdin,stdout,stderr = s.exec_command(buil_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
 
     buil_cmd = "sudo docker info" 
     stdin,stdout,stderr = s.exec_command(buil_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
     
@@ -182,6 +205,7 @@ def initialize_container(s,service_name,vm_ip,path):
     #buil_cmd = "[[docker images -q {"+service_name.lower()+"}]]|| echo 1"
     #buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
     stdin,stdout,stderr = s.exec_command(buil_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
 
@@ -189,6 +213,7 @@ def initialize_container(s,service_name,vm_ip,path):
     print("++++Making Docker imgaes........  "+ service_name.lower())
     buil_cmd = "sudo docker build -t "+ service_name.lower() + " " + path
     stdin,stdout,stderr = s.exec_command(buil_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
 
@@ -197,6 +222,7 @@ def start_container(s,service_name,vm_ip,port):
     print("++++Checking if Docker cotainer........  "+ service_name.lower()+" already running....")
     buil_cmd = "docker ps -q --filter ancestor="+service_name.lower()
     stdin,stdout,stderr = s.exec_command(buil_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
     
@@ -205,7 +231,8 @@ def start_container(s,service_name,vm_ip,port):
         print("++++Starting Docker imgaes........  "+ service_name.lower())
         run_cmd = "sudo docker run -p "+ str(port)+":5000 "+ service_name.lower()
         s.exec_command(run_cmd)
-        print("Starting Container....")
+        exit_status = stdout.channel.recv_exit_status()
+        print("Started Container....")
     else:
         print("VM already Up and running")
 
