@@ -261,10 +261,10 @@ def upload(user_type):
         #     f.save(os.path.join("./Data/App/", f.filename))
         #     response=requests.post(MODEL_APP_REPO+'/add_model',json=to_send).content.decode()
         if response == "ok":
-            dashboard(user_type,auth_token)
+            return dashboard(user_type,auth_token)
             #return render_template("temp.html",username=username,user_type=user_type,token=auth_token,URL=SCHBACK)
         else:
-            return "error"
+            return response
     except Exception as e:
         return session_expired(user_type,str(e))
 

@@ -33,7 +33,7 @@ def predict():
 
     preProcessedData = contract.preprocess(data)
 
-    modelfile = open("""+sys.argv[2]+""",'rb')
+    modelfile = open('"""+sys.argv[2]+"""','rb')
     model = pickle.load(modelfile)
 
     prediction = model.predict(preProcessedData)
@@ -41,7 +41,7 @@ def predict():
     return str(contract.postprocess(prediction))
 
 if __name__ == '__main__':
-    app.run()"""
+    app.run(host="0.0.0.0")"""
 
 wrapper_class = open('WrapperClass.py','w')
 wrapper_class.write(str)

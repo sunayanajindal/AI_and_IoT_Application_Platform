@@ -1,7 +1,7 @@
 import json
 import sys
-# its for models
-def dockerGenerator(config_file_path, service_name, modelName):
+
+def dockerGenerator(config_file_path, service_name):
     configFile = open(config_file_path,'r')
     config = json.load(configFile)
     configFile.close()
@@ -9,7 +9,7 @@ def dockerGenerator(config_file_path, service_name, modelName):
     df = open('Dockerfile','w')
     print("inside docker generation")
 
-    str = "FROM ubuntu:20.04\nRUN apt-get update\nRUN apt-get install -y python3-pip\n"
+    str = "FROM python:3\nCOPY . /app\nWORKDIR /app\n"
 
 
     all_services = config['Application']['services']
@@ -34,23 +34,20 @@ def dockerGenerator(config_file_path, service_name, modelName):
                     # to-do for more tech
             # entry_point = config['Application']['entryPoint']#string
     
-    # str += "EXPOSE " + port + "\n"
 
     for dependency in dependencies:
         str += "RUN pip3 install " + dependency + "\n"
 
     # for filename in filenames:
     #     str += "ADD " + filename + " .\n"
-
-    str += "COPY WrapperClass.py /\nCOPY "+modelName+" /\n"
-        
     
-    str+="CMD python3 WrapperClass.py"
+    
+    str+='CMD ["python3","-m","flask","run","--host=0.0.0.0"]'
 
     df.write(str)
     df.close()
 
 # config file, service name
-dockerGenerator(sys.argv[1],"service-1",sys.argv[2])
+dockerGenerator(sys.argv[1],"service-1")
 
 # dockerGenerator("./config.json","service-1")

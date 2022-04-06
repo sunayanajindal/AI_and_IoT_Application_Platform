@@ -1,0 +1,29 @@
+{
+"Application":{
+
+        "username":"user2",
+        "applicationname":"Application-1",
+        "services":{
+            "service-1":{
+                "servicename":"service-1",
+                "scheduled":"False",
+                "filename":"automatedacservice.py",
+                "dependencies":["requests","pickle","Flask"],
+                "filenames":["file1","file2"],
+                "entryPoint":"its_an_entrypoint_haha",
+                
+                "environment":{
+                    "python3":true,
+                    "tomcat":false,
+                    "java":false,
+                    "c++":false,
+                    "nginx":false,
+                    "flask":false
+                },
+                "python3-packages":["kafka-python"]
+            
+            }
+
+        }
+    }
+}
