@@ -1,6 +1,6 @@
 import json
 import threading
-from kafka import KafkaConsumer
+# from kafka import KafkaConsumer
 from pymongo import MongoClient
 # from data_generator_kafka_producer import *
 

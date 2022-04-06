@@ -1,7 +1,7 @@
-from concurrent.futures import process
-from re import I, template
+#from concurrent.futures import process
+#from re import I, template
 import certifi
-import ast
+#import ast
 from pymongo import MongoClient
 from flask import Flask, render_template, request,redirect
 from sensor_binder import *
