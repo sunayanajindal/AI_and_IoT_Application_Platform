@@ -194,7 +194,8 @@ def initialize_container(s,service_name,vm_ip,path):
 
 def start_container(s,service_name,vm_ip,port):
     #buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
-    buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
+    print("++++Checking if Docker cotainer........  "+ service_name.lower()+" already running....")
+    buil_cmd = "docker ps -q --filter ancestor="+service_name.lower()
     stdin,stdout,stderr = s.exec_command(buil_cmd)
     lines = stdout.readlines()
     print(lines)
