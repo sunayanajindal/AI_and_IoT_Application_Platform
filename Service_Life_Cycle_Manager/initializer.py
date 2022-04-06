@@ -8,7 +8,8 @@ from flask import Flask , request
 from azure.storage.fileshare import ShareFileClient
 from azure.storage.fileshare import ShareDirectoryClient
 from azure.storage.fileshare import ShareClient
-# app = Flask(__name__)
+
+app = Flask(__name__)
 # app.config['SECRET_KEY'] = 'secretkey'
 
 # CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
@@ -153,11 +154,6 @@ def upload_container(s,service_name,vm_ip,source,destination,source_path,folder_
 
 def initialize_container(s,service_name,vm_ip,path):
     
-    buil_cmd = "[[docker images -q {"+service_name.lower()+"}]]|| echo 1"
-    #buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
-    stdin,stdout,stderr = s.exec_command(buil_cmd)
-    lines = stdout.readlines()
-    print(lines)
 
     # if lines[0]!='1\n':
     print("++++Starting Docker Environemnt........  ")
@@ -181,6 +177,15 @@ def initialize_container(s,service_name,vm_ip,path):
     lines = stdout.readlines()
     print(lines)
     
+    print("++++Checking if images already exists !.......")
+    buil_cmd = "docker images -q "+service_name.lower()
+    #buil_cmd = "[[docker images -q {"+service_name.lower()+"}]]|| echo 1"
+    #buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
+    stdin,stdout,stderr = s.exec_command(buil_cmd)
+    lines = stdout.readlines()
+    print(lines)
+
+    
     print("++++Making Docker imgaes........  "+ service_name.lower())
     buil_cmd = "sudo docker build -t "+ service_name.lower() + " " + path
     stdin,stdout,stderr = s.exec_command(buil_cmd)
@@ -188,7 +193,7 @@ def initialize_container(s,service_name,vm_ip,path):
     print(lines)
 
 def start_container(s,service_name,vm_ip,port):
-    
+    #buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
     buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
     stdin,stdout,stderr = s.exec_command(buil_cmd)
     lines = stdout.readlines()
@@ -219,33 +224,65 @@ def restart_vm(GROUP_NAME,VM_NAME):
 #upload_container("Request_Manager",5000, "VM2","./Request_Manager/","~/Request_Manager/")
 #initialize_containers("Request_Manager",5000, "VM1","./Request_Manager/","~/Request_Manager/")
 
-# @app.route('/Initialize_Environment',methods = ['POST'])
+@app.route('/Initialize_Environment',methods = ['POST'])
 def init():
+    s = paramiko.SSHClient()
+    s.load_system_host_keys()
+    s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    username = vm_details[initialize_details['service_name']["vm_name"]]["username"]
+    password = vm_details[initialize_details['service_name']["vm_name"]]["password"]
+    s.connect(vm_ip, 22, username , password)
+
     vm_ip = request.get_json()['vm_ip']
     initialize_docker_env(s,vm_ip)
 
-# @app.route('/Upload',methods = ['POST'])
+@app.route('/Upload',methods = ['POST'])
 def upload():
+    s = paramiko.SSHClient()
+    s.load_system_host_keys()
+    s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    username = vm_details[initialize_details['service_name']["vm_name"]]["username"]
+    password = vm_details[initialize_details['service_name']["vm_name"]]["password"]
+    s.connect(vm_ip, 22, username , password)
+
     vm_ip = request.get_json()['vm_ip']
     source = request.get_json()['source']
     destination = request.get_json()['destination']
     upload_container(s,vm_ip,source,destination)
 
-# @app.route('/Containerize',methods = ['POST'])
+@app.route('/Containerize',methods = ['POST'])
 def containerize():
+    s = paramiko.SSHClient()
+    s.load_system_host_keys()
+    s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    username = vm_details[initialize_details['service_name']["vm_name"]]["username"]
+    password = vm_details[initialize_details['service_name']["vm_name"]]["password"]
+    s.connect(vm_ip, 22, username , password)
+
     service_name = request.get_json()['service_name']
     vm_ip = request.get_json()['vm_ip']
     path = request.get_json()['path']
     initialize_container(s,service_name,vm_ip,path)
 
-# @app.route('/Deploy',methods = ['POST'])
+@app.route('/Deploy',methods = ['POST'])
 def deploy():
+    s = paramiko.SSHClient()
+    s.load_system_host_keys()
+    s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    username = vm_details[initialize_details['service_name']["vm_name"]]["username"]
+    password = vm_details[initialize_details['service_name']["vm_name"]]["password"]
+    s.connect(vm_ip, 22, username , password)
+    
     service_name = request.get_json()['service_name']
     vm_ip = request.get_json()['vm_ip']
     port = request.get_json()['port']
     start_container(s,service_name,vm_ip,port)
 
-# @app.route('/restart',methods = ['POST'])
+@app.route('/restart',methods = ['POST'])
 def restart():
     service_ip = request.get_json()['Server_ip']
     username = request.get_json()['username']
@@ -284,4 +321,4 @@ if(__name__ == '__main__'):
         start_container(s,service_name,vm_ip,port)
         print(key + " Deployed")
     
-    # app.run(host ='127.0.0.1',port=8000,debug=True)
+    app.run(host ='127.0.0.1',port=8000,debug=True)
