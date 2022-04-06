@@ -16,5 +16,11 @@
         "ip" : "20.233.36.78",
         "username" : "azureuser",
         "password" : "@mazingSpiderMan"
+    },
+    "VM0" : {
+        "name":"TESTVMK",
+        "ip" : "127.0.0.1",
+        "username" : "azureuser",
+        "password" : "@mazingSpiderMan"
     }
 }

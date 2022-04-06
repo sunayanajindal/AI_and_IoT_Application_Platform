@@ -21,7 +21,7 @@ share_name="testing-file-share"
 ip_dbname = client['AI_PLATFORM']
 IP_ADDRESSES = ip_dbname["MODULE_URL"]
 
-app = dbname["node"]
+#app1 = dbname["node"]
 
 f = open('./Bootstrapper/subscription_config.json')
 subs = json.load(f)
@@ -261,7 +261,7 @@ def restart_vm(GROUP_NAME,VM_NAME):
 #upload_container("Request_Manager",5000, "VM2","./Request_Manager/","~/Request_Manager/")
 #initialize_containers("Request_Manager",5000, "VM1","./Request_Manager/","~/Request_Manager/")
 
-@app.route('/Initialize_Environment',methods = ['POST'])
+#@app.route('/Initialize_Environment',methods = ['POST'])
 def init():
     s = paramiko.SSHClient()
     s.load_system_host_keys()
@@ -274,7 +274,7 @@ def init():
     vm_ip = request.get_json()['vm_ip']
     initialize_docker_env(s,vm_ip)
 
-@app.route('/Upload',methods = ['POST'])
+#@app.route('/Upload',methods = ['POST'])
 def upload():
     s = paramiko.SSHClient()
     s.load_system_host_keys()
@@ -289,7 +289,7 @@ def upload():
     destination = request.get_json()['destination']
     upload_container(s,vm_ip,source,destination)
 
-@app.route('/Containerize',methods = ['POST'])
+#@app.route('/Containerize',methods = ['POST'])
 def containerize():
     s = paramiko.SSHClient()
     s.load_system_host_keys()
@@ -304,7 +304,7 @@ def containerize():
     path = request.get_json()['path']
     initialize_container(s,service_name,vm_ip,path)
 
-@app.route('/Deploy',methods = ['POST'])
+#@app.route('/Deploy',methods = ['POST'])
 def deploy():
     s = paramiko.SSHClient()
     s.load_system_host_keys()
@@ -319,13 +319,13 @@ def deploy():
     port = request.get_json()['port']
     start_container(s,service_name,vm_ip,port)
 
-@app.route('/restart',methods = ['POST'])
+#@app.route('/restart',methods = ['POST'])
 def restart():
     service_ip = request.get_json()['Server_ip']
     username = request.get_json()['username']
     password = request.get_json()['password']
     #restart_vm(service_ip,vm_ip,port)
-    app.updtae_one({"ip":service_ip},{"$set":{"status": "active"}})
+    #app1.updtae_one({"ip":service_ip},{"$set":{"status": "active"}})
 
 
 if(__name__ == '__main__'):   
@@ -334,18 +334,18 @@ if(__name__ == '__main__'):
     #client.connect("20.216.18.166", 22, username =  "azureuser", password = "@mazingSpiderMan",allow_agent=True,look_for_keys = False)
     
     for key in slcm_initialize_details:
-        vm_ip = vm_details[initialize_details[key]["vm_name"]]["ip"]
-        source = initialize_details[key]["source"]
-        destination = initialize_details[key]["destination"]
-        source_path = initialize_details[key]["source_path"]
-        folder_name = initialize_details[key]["folder_name"]
+        vm_ip = vm_details[slcm_initialize_details[key]["vm_name"]]["ip"]
+        source = slcm_initialize_details[key]["source"]
+        destination = slcm_initialize_details[key]["destination"]
+        source_path = slcm_initialize_details[key]["source_path"]
+        folder_name = slcm_initialize_details[key]["folder_name"]
         service_name = key
         path = destination
-        port = initialize_details[key]["port"]
-        username = vm_details[initialize_details[key]["vm_name"]]["username"]
-        password = vm_details[initialize_details[key]["vm_name"]]["password"]
+        port = slcm_initialize_details[key]["port"]
+        username = vm_details[slcm_initialize_details[key]["vm_name"]]["username"]
+        password = vm_details[slcm_initialize_details[key]["vm_name"]]["password"]
         
-        IP_ADDRESSES.update_one({'name': key},{ '$set':{'URL': vm_ip } })
+        IP_ADDRESSES.update_one({'name': key},{ '$set':{'URL': "http://"+vm_ip+":"+str(slcm_initialize_details[key]["port"]) } })
 
         
     
@@ -361,20 +361,23 @@ if(__name__ == '__main__'):
         username = vm_details[initialize_details[key]["vm_name"]]["username"]
         password = vm_details[initialize_details[key]["vm_name"]]["password"]
         
-        IP_ADDRESSES.update_one({'name': key},{ '$set':{'URL': vm_ip } })
+
+        IP_ADDRESSES.update_one({'name': key},{ '$set':{'URL': "http://"+vm_ip+":"+str(initialize_details[key]["port"]) } })
         
-        s = paramiko.SSHClient()
-        s.load_system_host_keys()
-        s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        s.connect(vm_ip, 22, username , password)
 
-        initialize_env(s,vm_ip)
-        initialize_docker_env(s,vm_ip)
-        upload_container(s,service_name,vm_ip,source,destination,source_path,folder_name)
-        time.sleep(10)
-        initialize_container(s,service_name,vm_ip,path)
-        time.sleep(10)
-        start_container(s,service_name,vm_ip,port)
-        print(key + " Deployed")
+        if initialize_details[key]["vm_name"] != "VM0":
+            s = paramiko.SSHClient()
+            s.load_system_host_keys()
+            s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            s.connect(vm_ip, 22, username , password)
 
-    app.run(host ='0.0.0.0',port=8000,debug=True)
+            initialize_env(s,vm_ip)
+            initialize_docker_env(s,vm_ip)
+            upload_container(s,service_name,vm_ip,source,destination,source_path,folder_name)
+            time.sleep(10)
+            initialize_container(s,service_name,vm_ip,path)
+            time.sleep(10)
+            start_container(s,service_name,vm_ip,port)
+            print(key + " Deployed")
+
+    #app.run(host ='0.0.0.0',port=8000,debug=True)
