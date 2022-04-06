@@ -13,8 +13,8 @@ import certifi
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
 
-REQUEST_MANAGER = 'http://localhost:5000'
-AUTHENTICATION_MANAGER = 'http://127.0.0.1:5001'
+REQUEST_MANAGER = 'http://20.216.18.166:5000'
+AUTHENTICATION_MANAGER = 'http://20.233.33.141:5001'
 MODEL_APP_REPO = 'http://127.0.0.1:5002'
 DEPLOYER = "http://127.0.0.1:5005"
 SCHEDULER = "http://127.0.0.1:5011"
@@ -104,9 +104,11 @@ def dashboard(user_type, auth_token ="" ):
 @app.route("/sensor_location/", methods=['POST', 'GET'])
 def sensor_requirements():
     user_type = "End_User"
+    auth_token=''
     if auth_token == "":
         auth_token = request.headers.get('Authorization')
     if auth_token == None:
+        print("hellow")
         auth_token = request.cookies.get('auth_token')
     
     try:

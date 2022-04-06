@@ -25,7 +25,7 @@ def download_azure_file(source_path,dir_name, file_name):
         source_file_path =  source_path + '/'+ dir_name +"/"+file_name
         print(source_file_path)
         dest_file_name = dir_name +"/"+file_name
-        file_client = ShareClient.from_connection_string(connection_string, share_name, source_file_path)
+        file_client = ShareFileClient.from_connection_string(connection_string, share_name, source_file_path)
         print("Downloading to:", dest_file_name)
         with open(dest_file_name, "wb") as data:
             stream = file_client.download_file()
@@ -38,7 +38,7 @@ def download_files(source_path,folder_name):
     # create_directory(folder_name)    
 	
     os.mkdir(folder_name)
-
+    
     my_directory_client = file_client.get_directory_client(directory_path=source_path + '/'+folder_name)
 	
     my_list = list(my_directory_client.list_directories_and_files())

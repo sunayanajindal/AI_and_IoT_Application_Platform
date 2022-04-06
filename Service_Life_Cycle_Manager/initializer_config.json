@@ -10,20 +10,11 @@
 
     "Authentication_Manager":{
         "port":5001,
-        "vm_name": "VM1",
+        "vm_name": "VM2",
         "source_path" : "./AI_and_IoT_Application_Platform",
         "folder_name" : "Authentication_Manager",
         "source": "./Authentication_Manager",
         "destination": "~/Authentication_Manager/"
-    },
-
-    "Scheduler":{
-        "port":5002,
-        "vm_name": "VM1",
-        "source_path" : "./AI_and_IoT_Application_Platform",
-        "folder_name" : "Scheduler",
-        "source": "./Scheduler",
-        "destination": "~/Scheduler/"
     }
 
 }

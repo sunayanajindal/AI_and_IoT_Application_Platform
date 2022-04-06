@@ -1,5 +1,5 @@
 from concurrent.futures import process
-from re import template
+from re import I, template
 import certifi
 import ast
 from pymongo import MongoClient
@@ -64,13 +64,21 @@ def sensor_requirements():
     for x in sensor_count:
         temp.append(int(x.strip()))
     sensor_count = temp
-    print(sensor_count)
+    print("==============++++++++++++++++++++++++++++")
+    print(new_sensor_instance)
 
     for each in new_sensor_instance:
-        l = each.split('_')
-        # print (l)
-        val = {"type" : l[0] , "location" : new_sensor_instance[each], "serial_num" : l[1]}
-        request_details["info"].append(val)
+        if each != 'username':
+            l = each.split('_')
+            print("++++++++++++++++++++++++++++")
+            print(l)
+            print(l[0])
+            print(l[1])
+            # i = (l[1].split(' '))[0]
+            
+            # print (l)
+            val = {"type" : l[0] , "location" : new_sensor_instance[each], "serial_num" : l[1]}
+            request_details["info"].append(val)
 
     binding_map = processRequest(request_details)
     print(binding_map)

@@ -32,96 +32,9 @@ vm_details = json.load(f2)
 f3 = open('./initializer_config.json')
 initialize_details = json.load(f3)
 
-# def create_directory(dir_name):
-#     try:
-#         dir_client = ShareDirectoryClient.from_connection_string(connection_string, share_name, dir_name)
 
-#         print("Creating directory:", share_name + "/" + dir_name)
-#         dir_client.create_directory()
-
-#     except Exception as ex:
-#         print("ResourceExistsError:", ex.message)
-
-# def Upload_file_and_create_dir(folder_name,filepath):
-#     try:
-#         create_directory(folder_name)
-#         destination_file_path=folder_name+'/'+os.path.basename(filepath)
-#         print(destination_file_path)
-#         file_client = ShareFileClient.from_connection_string(connection_string, share_name, destination_file_path)
-
-#         with open(filepath, "rb") as source_file:
-#             file_client.upload_file(source_file)
-
-#         print("Succesfully Uploaded")
-#     except Exception as E:
-#         print("File_NOT_found Error")
-
-# def upload_file(folder_name,filepath):
-#     try:
-#         destination_file_path=folder_name+'/'+os.path.basename(filepath)
-#         print(destination_file_path)
-#         file_client = ShareFileClient.from_connection_string(connection_string, share_name, destination_file_path)
-
-#         with open(filepath, "rb") as source_file:
-#             file_client.upload_file(source_file)
-
-#         print("Succesfully Uploaded")
-#     except Exception as E:
-#         print("File_NOT_found Error")
-
-# def download_azure_file(dir_name, file_name):
-#     try:
-#         # Build the remote path
-#         source_file_path = dir_name + "/" + file_name
-
-#         # Add a prefix to the filename to 
-#         # distinguish it from the uploaded file
-
-#         cmd = f"mkdir {dir_name}"
-
-#         os.system(cmd)
-#         dest_file_name = dir_name + "/" +file_name
-
-#         # Create a ShareFileClient from a connection string
-#         file_client = ShareFileClient.from_connection_string(
-#             connection_string, share_name, source_file_path)
-
-#         print("Downloading to:", dest_file_name)
-
-#         # Open a file for writing bytes on the local system
-#         with open(dest_file_name, "wb") as data:
-#             # Download the file from Azure into a stream
-#             stream = file_client.download_file()
-#             # Write the stream to the local file
-#             data.write(stream.readall())
-
-#     except ResourceNotFoundError as ex:
-#         print("ResourceNotFoundError:", ex.message)
-
-# def download_files(folder_name):
-
-# 	my_directory_client = file_client.get_directory_client(directory_path=folder_name)
-
-# 	my_list = list(my_directory_client.list_directories_and_files())
-
-# 	for file in my_directory_client.list_directories_and_files():
-
-#     	# print(file["name"])
-
-#         file.isdir():
-#         pass
-#         else:
-
-
-# 		# print(folder_name,file["name"])
-# 		download_azure_file(folder_name,file["name"])
-
-def initialize_env(vm_ip):
-    s = paramiko.SSHClient()
-    s.load_system_host_keys()
-    s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    s.connect(vm_ip, 22, vm_user["username"], vm_user["password"])
-
+def initialize_env(s,vm_ip):
+    
     build_cmd = "pip3"
     stdin,stdout,stderr = s.exec_command(build_cmd)
     lines = stdout.readlines()
@@ -144,11 +57,8 @@ def initialize_env(vm_ip):
     stdin,stdout,stderr = s.exec_command(build_cmd)
     lines = stdout.readlines()
     print(lines)
-def initialize_docker_env(vm_ip):
-    s = paramiko.SSHClient()
-    s.load_system_host_keys()
-    s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    s.connect(vm_ip, 22, vm_user["username"], vm_user["password"])
+
+def initialize_docker_env(s,vm_ip):
 
     build_cmd = "docker -v"
     stdin,stdout,stderr = s.exec_command(build_cmd)
@@ -188,18 +98,15 @@ def initialize_docker_env(vm_ip):
     else:
         print("Docker Environment Present!")
 
-def upload_container(service_name,vm_ip,source,destination,source_path,folder_name):
-    client=paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    #client.connect("20.213.161.182", 22, "IASHackathon1", "IASHackathon1")
-    client.connect(vm_ip, 22, vm_user["username"], vm_user["password"])
-    sftp_client = client.open_sftp()
+def upload_container(s,service_name,vm_ip,source,destination,source_path,folder_name):
+
+    sftp_client = s.open_sftp()
 
     localfolder = source
     basefolder = destination
 
     command="ls"
-    stdin,stdout,stderr =client.exec_command(command)
+    stdin,stdout,stderr = s.exec_command(command)
     lines = stdout.readlines()   
     print(lines)
     flag = False
@@ -213,7 +120,7 @@ def upload_container(service_name,vm_ip,source,destination,source_path,folder_na
         sftp_client.put('./download_code_base.py' , './download_code_base.py')
         time.sleep(0.5)
         command="python3 download_code_base.py "+source_path+" "+ folder_name
-        stdin,stdout,stderr =client.exec_command(command)
+        stdin,stdout,stderr = s.exec_command(command)
         lines = stdout.readlines()   
         print(lines)
 
@@ -241,9 +148,9 @@ def upload_container(service_name,vm_ip,source,destination,source_path,folder_na
         print(service_name+" Dir already Present")
 
     sftp_client.close()
-    client.close()
 
-def initialize_container(service_name,vm_ip,path):
+
+def initialize_container(s,service_name,vm_ip,path):
     s = paramiko.SSHClient()
     s.load_system_host_keys()
     s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -284,14 +191,8 @@ def initialize_container(service_name,vm_ip,path):
         lines = stdout.readlines()
         print(lines)
 
-def start_container(service_name,vm_ip,port):
+def start_container(s,service_name,vm_ip,port):
 
-    s = paramiko.SSHClient()
-    s.load_system_host_keys()
-    s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    #s.connect("20.213.161.182", 22, "IASHackathon1", "IASHackathon1")
-    s.connect(vm_ip, 22, vm_user["username"], vm_user["password"])
-    
     buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
     stdin,stdout,stderr = s.exec_command(buil_cmd)
     lines = stdout.readlines()
@@ -324,28 +225,28 @@ def restart_vm(GROUP_NAME,VM_NAME):
 # @app.route('/Initialize_Environment',methods = ['POST'])
 def init():
     vm_ip = request.get_json()['vm_ip']
-    initialize_docker_env(vm_ip)
+    initialize_docker_env(s,vm_ip)
 
 # @app.route('/Upload',methods = ['POST'])
 def upload():
     vm_ip = request.get_json()['vm_ip']
     source = request.get_json()['source']
     destination = request.get_json()['destination']
-    upload_container(vm_ip,source,destination)
+    upload_container(s,vm_ip,source,destination)
 
 # @app.route('/Containerize',methods = ['POST'])
 def containerize():
     service_name = request.get_json()['service_name']
     vm_ip = request.get_json()['vm_ip']
     path = request.get_json()['path']
-    initialize_container(service_name,vm_ip,path)
+    initialize_container(s,service_name,vm_ip,path)
 
 # @app.route('/Deploy',methods = ['POST'])
 def deploy():
     service_name = request.get_json()['service_name']
     vm_ip = request.get_json()['vm_ip']
     port = request.get_json()['port']
-    start_container(service_name,vm_ip,port)
+    start_container(s,service_name,vm_ip,port)
 
 # @app.route('/restart',methods = ['POST'])
 def restart():
@@ -358,6 +259,7 @@ def restart():
 
 if(__name__ == '__main__'):     
     for key in initialize_details:
+        
         vm_ip = vm_details[initialize_details[key]["vm_name"]]["ip"]
         source = initialize_details[key]["source"]
         destination = initialize_details[key]["destination"]
@@ -366,12 +268,19 @@ if(__name__ == '__main__'):
         service_name = key
         path = destination
         port = initialize_details[key]["port"]
+        username = vm_details[initialize_details[key]["vm_name"]]["username"]
+        password = vm_details[initialize_details[key]["vm_name"]]["password"]
         
-        initialize_env(vm_ip)
-        initialize_docker_env(vm_ip)
-        upload_container(service_name,vm_ip,source,destination,source_path,folder_name)
-        initialize_container(service_name,vm_ip,path)
-        start_container(service_name,vm_ip,port)
+        s = paramiko.SSHClient()
+        s.load_system_host_keys()
+        s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        s.connect(vm_ip, 22, username , password)
+
+        initialize_env(s,vm_ip)
+        initialize_docker_env(s,vm_ip)
+        upload_container(s,service_name,vm_ip,source,destination,source_path,folder_name)
+        initialize_container(s,service_name,vm_ip,path)
+        start_container(s,service_name,vm_ip,port)
         print(key + " Deployed")
     
     #app.run(host ='127.0.0.1',port=8000,debug=True)

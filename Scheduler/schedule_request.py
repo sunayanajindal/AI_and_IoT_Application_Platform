@@ -12,6 +12,11 @@ app = Flask(__name__)
 scheduling_data =""
 REQUEST_MANAGER = "http://127.0.0.1:5000"
 
+CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
+client = MongoClient(CONNECTION_STRING)
+dbname = client['AI_PLATFORM']
+USER_APP_SENSOR_DB = dbname["USER_APP_SENSOR"]
+
 @app.route("/schedule_data", methods=['POST'])
 def receive_binding_map():
     global scheduling_data
@@ -38,7 +43,8 @@ def sendToDeployer (data,repeatStatus, operation):
         return schedule.CancelJob
 
 def everydaySchedule(data):
-    schedule.every().day.at(data['StartTime']).do(sendToDeployer,data,True)
+    schedule.every().day.at(data['StartTime']).do(sendToDeployer,data,True, "start")
+    schedule.every().day.at(data['EndTime']).do(sendToDeployer,data,True, "end")
 
 def repeatSchedule(data, repeatStatus):
     daysData=data['days']
@@ -121,6 +127,7 @@ def formatFormData(output):
     if 'repeat' in output:
         data['repeat']=True
 
+    scheduling_data['username'] = output['username']
     return data
 
 
@@ -129,10 +136,15 @@ def submitSchedule():
     output = request.form.to_dict()
     data=formatFormData(output)
     print(data)
+    insertinDB()
     scheduleRequest(data)
     redir = redirect(REQUEST_MANAGER+"/Success")
     return redir
 
+
+def insertinDB():
+    copy_scheduling_data = {"app_id" : scheduling_data['app_id'], "username" : scheduling_data['username'], "info" : scheduling_data['info']}
+    USER_APP_SENSOR_DB.insert_one(copy_scheduling_data)
 
 def runPending():
     # pick task from DB and run it
