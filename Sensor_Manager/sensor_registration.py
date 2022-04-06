@@ -17,15 +17,19 @@ REQUEST_MANAGER = 'http://127.0.0.1:5000'
 CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
 client = MongoClient(CONNECTION_STRING)
 dbname = client['AI_PLATFORM']
-IP_ADDRESSES = dbname["IP_ADDRESSES"]
+#IP_ADDRESSES = dbname["IP_ADDRESSES"]
+
+IP_ADDRESSES = dbname["MODULE_URL"]
 
 
-ip_table = list(IP_ADDRESSES.find())
-for i in ip_table:
-    if 'REQUEST_MANAGER' in i:
-        REQUEST_MANAGER = i['REQUEST_MANAGER']
-    if 'SENSOR_CONFIGURER' in i:
-        SENSOR_CONFIGURER = i['SENSOR_CONFIGURER']
+SENSOR_CONFIGURER = IP_ADDRESSES.find_one({'name': 'Sensor_Manager'})['URL']
+
+# ip_table = list(IP_ADDRESSES.find())
+# for i in ip_table:
+#     if 'REQUEST_MANAGER' in i:
+#         REQUEST_MANAGER = i['REQUEST_MANAGER']
+#     if 'SENSOR_CONFIGURER' in i:
+#         SENSOR_CONFIGURER = i['SENSOR_CONFIGURER']
 
 
 CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
@@ -40,7 +44,7 @@ def configureNewSensorInstance():
     new_sensor_instance = request.form.to_dict()
     print(new_sensor_instance)
     sensor_instances = list(SENSOR_INSTANCES_DB.find())
-
+    REQUEST_MANAGER = IP_ADDRESSES.find_one({'name': 'Request_Manager'})['URL']
     for instance in sensor_instances:
         temp = instance
         del temp['_id']
@@ -58,6 +62,7 @@ def configureNewSensorInstance():
     print(data_rate)
     print("New Sensor Instance has been configured")
     schedule.every(int(data_rate)).seconds.do(produce,_id,data_format)
+    
     redir = redirect(REQUEST_MANAGER+"/Dashboard/Platform_Configurer")
     redir.headers['Authorization'] = new_sensor_instance['token']
     return redir
@@ -69,12 +74,13 @@ def configureNewSensorType():
     new_sensor_type = request.form.to_dict()
     print(request.form)
     sensor_types = list(SENSOR_INFO_DB.find())
-
+    REQUEST_MANAGER = IP_ADDRESSES.find_one({'name': 'Request_Manager'})['URL']
     for type in sensor_types:
         temp = type
         del temp['_id']
         if(temp == new_sensor_type):
             print("Error: Sensor Type is already configured.")
+            
             redir = redirect(REQUEST_MANAGER+"/Dashboard/Platform_Configurer")
             redir.headers['Authorization'] = new_sensor_type['token']
             return redir

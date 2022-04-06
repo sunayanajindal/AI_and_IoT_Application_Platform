@@ -7,7 +7,7 @@ import string
 
 CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
 client = MongoClient(CONNECTION_STRING)
-dbname = client['sensor']
+dbname = client['AI_PLATFORM']
 all_instances = dbname["SENSOR_INSTANCES"]
 sensor_info = dbname["SENSOR_INFO"]
 

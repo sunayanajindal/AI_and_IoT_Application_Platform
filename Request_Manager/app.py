@@ -16,8 +16,8 @@ app.config['SECRET_KEY'] = 'secretkey'
 
 CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
 client = MongoClient(CONNECTION_STRING)
-dbname = client['AI_PLATFORM']
-IP_ADDRESSES = dbname["IP_ADDRESSES"]
+ip_dbname = client['AI_PLATFORM']
+IP_ADDRESSES = ip_dbname["MODULE_URL"]
 
 REQUEST_MANAGER = 'http://20.216.18.166:5000'
 AUTHENTICATION_MANAGER = 'http://20.233.33.141:5001'
@@ -30,36 +30,40 @@ SENSOR_CONFIGURER = "http://127.0.0.1:6001"
 APP_CONFIGURER = "http://127.0.0.1:6005"
 SENSOR_BINDER = "http://127.0.0.1:6005"
 
-ip_table = list(IP_ADDRESSES.find())
-for i in ip_table:
-    if 'REQUEST_MANAGER' in i:
-        REQUEST_MANAGER = i['REQUEST_MANAGER']
-    if 'AUTHENTICATION_MANAGER' in i:
-        AUTHENTICATION_MANAGER = i['AUTHENTICATION_MANAGER']
-    if 'MODEL_APP_REPO' in i:
-        MODEL_APP_REPO = i['MODEL_APP_REPO']
-    if 'DEPLOYER' in i:
-        DEPLOYER = i['DEPLOYER']
-    if 'SCHBACK' in i:
-        SCHBACK = i['SCHBACK']
-    if 'SENSOR_CONFIGURER' in i:
-        SENSOR_CONFIGURER = i['SENSOR_CONFIGURER']
-    if 'APP_CONFIGURER' in i:
-        APP_CONFIGURER = i['APP_CONFIGURER']
-    if 'SENSOR_BINDER' in i:
-        SENSOR_BINDER = i['SENSOR_BINDER']
-    if 'SCHEDULER' in i:
-        SCHEDULER = i['SCHEDULER']
+
+REQUEST_MANAGER =  IP_ADDRESSES.find_one({'name': 'Request_Manager'})['URL']
+
+
+SCHBACK = IP_ADDRESSES.find_one({'name': 'Scheduler'})['URL']
+
+APP_CONFIGURER = IP_ADDRESSES.find_one({'name': 'Sensor_Binder'})['URL']
+
+
+# for i in ip_table:
+#     if 'REQUEST_MANAGER' in i:
+#         REQUEST_MANAGER = i['REQUEST_MANAGER']
+#     if 'AUTHENTICATION_MANAGER' in i:
+#         AUTHENTICATION_MANAGER = i['AUTHENTICATION_MANAGER']
+#     if 'MODEL_APP_REPO' in i:
+#         MODEL_APP_REPO = i['MODEL_APP_REPO']
+#     if 'DEPLOYER' in i:
+#         DEPLOYER = i['DEPLOYER']
+#     if 'SCHBACK' in i:
+#         SCHBACK = i['SCHBACK']
+#     if 'SENSOR_CONFIGURER' in i:
+#         SENSOR_CONFIGURER = i['SENSOR_CONFIGURER']
+#     if 'APP_CONFIGURER' in i:
+#         APP_CONFIGURER = i['APP_CONFIGURER']
+#     if 'SENSOR_BINDER' in i:
+#         SENSOR_BINDER = i['SENSOR_BINDER']
+#     if 'SCHEDULER' in i:
+#         SCHEDULER = i['SCHEDULER']
 
 
 
 
-AUTH_URL = AUTHENTICATION_MANAGER + '/authenticate_user/'
-CREATE_URL = AUTHENTICATION_MANAGER + '/create_user/'
 
 
-CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
-client = MongoClient(CONNECTION_STRING, tlsCAFile=certifi.where())
 
 dbname = client['AI_PLATFORM']
 app_req_db = dbname["app_requirement"]
@@ -101,6 +105,7 @@ def dashboard(user_type, auth_token ="" ):
     # response = requests.post(MODEL_APP_REPO + '/get_models',json=to_send).content.decode()
     # model_list = response.split()
     if user_type == "Platform_Configurer":
+        SENSOR_CONFIGURER = IP_ADDRESSES.find_one({'name': 'Sensor_Manager'})['URL']
         response = make_response(render_template("configurer.html",URL = SENSOR_CONFIGURER,username= payload['sub'], token = auth_token,user_type=user_type))
     elif user_type == "End_User":
         ########################
@@ -180,13 +185,17 @@ def sensor_requirements():
     for sensor_type in app_sensor_req:
         sensor_kinds.append(sensor_type)
         sensor_count.append(app_sensor_req[sensor_type])
-
+    
+    SENSOR_BINDER = IP_ADDRESSES.find_one({'name': 'Sensor_Binder'})['URL']
+    SCHEDULER = IP_ADDRESSES.find_one({'name': 'Scheduler'})['URL']
     return render_template("sensor_location.html", error=error, given_app_id = given_app_id, username = payload['sub'], SCHEDULER = SCHEDULER, URL = SENSOR_BINDER,sensor_kinds=sensor_kinds, sensor_count=sensor_count)
 
 @app.route('/register/<user_type>', methods = ['POST'])
 def register(user_type):
     username=request.form['username']
     password=request.form['password']
+    AUTHENTICATION_MANAGER = IP_ADDRESSES.find_one({'name': 'Authentication_Manager'})['URL']
+    CREATE_URL = AUTHENTICATION_MANAGER + '/create_user/'
     response = requests.post(CREATE_URL+user_type,json={'username':username,'password':password}).content.decode()
     payload = json.loads(response)
     if(payload["message"]=="Success"):
@@ -199,6 +208,8 @@ def register(user_type):
 def login(user_type):
     username=request.form['username']
     password=request.form['password']
+    AUTHENTICATION_MANAGER = IP_ADDRESSES.find_one({'name': 'Authentication_Manager'})['URL']
+    AUTH_URL = AUTHENTICATION_MANAGER + '/authenticate_user/'
     response = requests.post(AUTH_URL+user_type,json={'username':username,'password':password}).content.decode()
     payload = json.loads(response)
     if(payload["message"]=="Success"):
@@ -217,6 +228,8 @@ def schedule():
         payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'),algorithms=['HS256'])
     except:
         return session_expired("End_User",'')
+    
+    SCHEDULER = IP_ADDRESSES.find_one({'name': 'Scheduler'})['URL']
     return render_template("temp.html",username=payload['sub'],user_type="End_User",token=auth_token,URL=SCHEDULER)
 
 
@@ -251,6 +264,7 @@ def upload(user_type):
         to_send={}
         to_send["username"]=username
         to_send["role"]=user_type
+        DEPLOYER = IP_ADDRESSES.find_one({'name': 'Deployment_Manager'})['URL']
         response=requests.post(DEPLOYER+'/submit',json=to_send,files=files).content.decode()
         # if user_type == 'App_Developer':
         #     to_send["app_name"]=f.filename

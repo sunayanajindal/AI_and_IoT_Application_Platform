@@ -17,17 +17,16 @@ SCHEDULER = "http://127.0.0.1:5011"
 dbname = client['AI_PLATFORM']
 app_req_db = dbname["app_requirement"]
 
-CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
-client = MongoClient(CONNECTION_STRING)
-dbname = client['AI_PLATFORM']
-IP_ADDRESSES = dbname["IP_ADDRESSES"]
+IP_ADDRESSES = dbname["MODULE_URL"]
 
-ip_table = list(IP_ADDRESSES.find())
-for i in ip_table:
-    if 'REQUEST_MANAGER' in i:
-        REQUEST_MANAGER = i['REQUEST_MANAGER']
-    if 'SCHEDULER' in i:
-        SCHEDULER = i['SCHEDULER']
+
+
+# ip_table = list(IP_ADDRESSES.find())
+# for i in ip_table:
+#     if 'REQUEST_MANAGER' in i:
+#         REQUEST_MANAGER = i['REQUEST_MANAGER']
+#     if 'SCHEDULER' in i:
+#         SCHEDULER = i['SCHEDULER']
 
 
 
@@ -99,13 +98,16 @@ def sensor_requirements():
         print("Error")
         # redir = redirect(REQUEST_MANAGER+"/sensor_location", code=307)
         # redir.headers['Authorization'] = auth_token
+        REQUEST_MANAGER = IP_ADDRESSES.find_one({'name': 'Request_Manager'})['URL']
         return redirect(REQUEST_MANAGER+"/sensor_location/", code=307)
         #return render_template("sensor_location.html", error='Sensor not available', given_app_id=given_app_id, sensor_kinds=sensor_kinds, sensor_count=sensor_count)
 
     else:
         scheduling_data = {"app_id": given_app_id,"info" : binding_map}
         print(scheduling_data)
+        SCHEDULER = IP_ADDRESSES.find_one({'name': 'Scheduler'})['URL']
         response=requests.post( SCHEDULER+ "/schedule_data",json=scheduling_data).content.decode()
+        REQUEST_MANAGER = IP_ADDRESSES.find_one({'name': 'Request_Manager'})['URL']
         redir = redirect(REQUEST_MANAGER+"/Schedule/")
         redir.headers['Authorization'] = auth_token
         return redir

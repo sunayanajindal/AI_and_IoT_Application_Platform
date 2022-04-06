@@ -18,6 +18,9 @@ connection_string = "DefaultEndpointsProtocol=https;AccountName=storageias;Accou
 file_client = ShareClient.from_connection_string(conn_str=connection_string,share_name="testing-file-share",file_path="uploaded_file.py")
 share_name="testing-file-share"
 
+ip_dbname = client['AI_PLATFORM']
+IP_ADDRESSES = ip_dbname["MODULE_URL"]
+
 app = dbname["node"]
 
 f = open('./Bootstrapper/subscription_config.json')
@@ -31,29 +34,38 @@ f2 = open('./Bootstrapper/vm_details.json')
 vm_details = json.load(f2)
 f3 = open('./Bootstrapper/container_initializer/bootstrap_initializer_config.json')
 initialize_details = json.load(f3)
+f4 = open('./Bootstrapper/container_initializer/initializer_config.json')
+slcm_initialize_details = json.load(f4)
+
 
 def initialize_env(s,vm_ip):
     print("++++Initializing Environment")
     build_cmd = "pip3"
     stdin,stdout,stderr = s.exec_command(build_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
 
     if len(lines)<=10:
-        build_cmd = "sudo apt install python3-pip"
+        print("pip3 not found!")
+        build_cmd = "sudo apt install  --no-input python3-pip"
         stdin,stdout,stderr = s.exec_command(build_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
-    else:
-        print("python3-pip Present!")
+
+    
+        print("pip3 installed")
 
     build_cmd = "pip install azure-storage-file-share"
     stdin,stdout,stderr = s.exec_command(build_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
 
     build_cmd = "pip install azure-storage-file-share"
     stdin,stdout,stderr = s.exec_command(build_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
 
@@ -61,41 +73,49 @@ def initialize_docker_env(s,vm_ip):
     print("++++Initializing Docker Environment")
     build_cmd = "docker -v"
     stdin,stdout,stderr = s.exec_command(build_cmd)
+    exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
 
     if len(lines)==0:
         build_cmd = "curl -fsSL https://get.docker.com -o get-docker.sh"
         stdin,stdout,stderr = s.exec_command(build_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
 
         buil_cmd = "sh get-docker.sh"
         stdin,stdout,stderr = s.exec_command(buil_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
 
         buil_cmd = "curl -fsSL https://test.docker.com -o test-docker.sh"
         stdin,stdout,stderr = s.exec_command(buil_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
 
         buil_cmd = "sh test-docker.sh" 
         stdin,stdout,stderr = s.exec_command(buil_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
         
         buil_cmd = "sh install.sh" 
         stdin,stdout,stderr = s.exec_command(buil_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
 
         buil_cmd = "docker -v" 
         stdin,stdout,stderr = s.exec_command(buil_cmd)
+        exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
     else:
         print("Docker Environment Present!")
+
 
 def upload_container(s,service_name,vm_ip,source,destination,source_path,folder_name):
     print("++++Downloading Code : "+ service_name)
@@ -152,7 +172,7 @@ def upload_container(s,service_name,vm_ip,source,destination,source_path,folder_
     sftp_client.close()
 
 def initialize_container(s,service_name,vm_ip,path):
-
+    
     buil_cmd = "[[docker images -q {"+service_name.lower()+"}]]|| echo 1"
     #buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
     stdin,stdout,stderr = s.exec_command(buil_cmd)
@@ -168,7 +188,6 @@ def initialize_container(s,service_name,vm_ip,path):
     lines = stdout.readlines()
     print(lines)
 
-    
     buil_cmd = "sudo systemctl enable docker" 
     stdin,stdout,stderr = s.exec_command(buil_cmd)
     exit_status = stdout.channel.recv_exit_status()
@@ -188,34 +207,36 @@ def initialize_container(s,service_name,vm_ip,path):
     print(lines)
     
     print("++++Checking if images already exists !.......")
-    buil_cmd = "docker images -q "+service_name.lower()
+    buil_cmd = "sudo docker images -q "+service_name.lower()
     #buil_cmd = "[[docker images -q {"+service_name.lower()+"}]]|| echo 1"
     #buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
     stdin,stdout,stderr = s.exec_command(buil_cmd)
     exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
+
+    if len(lines)==0 :
+        print("++++Making Docker imgaes........  "+ service_name.lower())
+        buil_cmd = "sudo docker build -t "+ service_name.lower() + " " + path
+        stdin,stdout,stderr = s.exec_command(buil_cmd)
+        exit_status = stdout.channel.recv_exit_status()
+        lines = stdout.readlines()
+        print(lines)
+    else:
+        print("Image already present")
     
-    
-    print("++++Making Docker imgaes........  "+ service_name.lower())
-    buil_cmd = "sudo docker build -t "+ service_name.lower() + " " + path
-    stdin,stdout,stderr = s.exec_command(buil_cmd)
-    exit_status = stdout.channel.recv_exit_status()
-    lines = stdout.readlines()
-    print(lines)
 
 def start_container(s,service_name,vm_ip,port):
-
     #buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
     print("++++Checking if Docker cotainer........  "+ service_name.lower()+" already running....")
-    buil_cmd = "docker ps -q --filter ancestor="+service_name.lower()
+    buil_cmd = "sudo docker ps -q --filter ancestor="+service_name.lower()
     stdin,stdout,stderr = s.exec_command(buil_cmd)
     exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
     
-    #if lines[0]!='1\n':
-    if True :
+
+    if len(lines)==0 :
         print("++++Starting Docker imgaes........  "+ service_name.lower())
         run_cmd = "sudo docker run -p "+ str(port)+":5000 "+ service_name.lower()
         s.exec_command(run_cmd)
@@ -240,7 +261,7 @@ def restart_vm(GROUP_NAME,VM_NAME):
 #upload_container("Request_Manager",5000, "VM2","./Request_Manager/","~/Request_Manager/")
 #initialize_containers("Request_Manager",5000, "VM1","./Request_Manager/","~/Request_Manager/")
 
-# @app.route('/Initialize_Environment',methods = ['POST'])
+@app.route('/Initialize_Environment',methods = ['POST'])
 def init():
     s = paramiko.SSHClient()
     s.load_system_host_keys()
@@ -253,7 +274,7 @@ def init():
     vm_ip = request.get_json()['vm_ip']
     initialize_docker_env(s,vm_ip)
 
-# @app.route('/Upload',methods = ['POST'])
+@app.route('/Upload',methods = ['POST'])
 def upload():
     s = paramiko.SSHClient()
     s.load_system_host_keys()
@@ -268,7 +289,7 @@ def upload():
     destination = request.get_json()['destination']
     upload_container(s,vm_ip,source,destination)
 
-# @app.route('/Containerize',methods = ['POST'])
+@app.route('/Containerize',methods = ['POST'])
 def containerize():
     s = paramiko.SSHClient()
     s.load_system_host_keys()
@@ -283,7 +304,7 @@ def containerize():
     path = request.get_json()['path']
     initialize_container(s,service_name,vm_ip,path)
 
-# @app.route('/Deploy',methods = ['POST'])
+@app.route('/Deploy',methods = ['POST'])
 def deploy():
     s = paramiko.SSHClient()
     s.load_system_host_keys()
@@ -298,7 +319,7 @@ def deploy():
     port = request.get_json()['port']
     start_container(s,service_name,vm_ip,port)
 
-# @app.route('/restart',methods = ['POST'])
+@app.route('/restart',methods = ['POST'])
 def restart():
     service_ip = request.get_json()['Server_ip']
     username = request.get_json()['username']
@@ -311,6 +332,23 @@ if(__name__ == '__main__'):
     
     #client.connect("20.213.161.182", 22, "IASHackathon1", "IASHackathon1")
     #client.connect("20.216.18.166", 22, username =  "azureuser", password = "@mazingSpiderMan",allow_agent=True,look_for_keys = False)
+    
+    for key in slcm_initialize_details:
+        vm_ip = vm_details[initialize_details[key]["vm_name"]]["ip"]
+        source = initialize_details[key]["source"]
+        destination = initialize_details[key]["destination"]
+        source_path = initialize_details[key]["source_path"]
+        folder_name = initialize_details[key]["folder_name"]
+        service_name = key
+        path = destination
+        port = initialize_details[key]["port"]
+        username = vm_details[initialize_details[key]["vm_name"]]["username"]
+        password = vm_details[initialize_details[key]["vm_name"]]["password"]
+        
+        IP_ADDRESSES.update_one({'name': key},{ '$set':{'URL': vm_ip } })
+
+        
+    
     for key in initialize_details:
         vm_ip = vm_details[initialize_details[key]["vm_name"]]["ip"]
         source = initialize_details[key]["source"]
@@ -323,6 +361,8 @@ if(__name__ == '__main__'):
         username = vm_details[initialize_details[key]["vm_name"]]["username"]
         password = vm_details[initialize_details[key]["vm_name"]]["password"]
         
+        IP_ADDRESSES.update_one({'name': key},{ '$set':{'URL': vm_ip } })
+        
         s = paramiko.SSHClient()
         s.load_system_host_keys()
         s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -331,10 +371,10 @@ if(__name__ == '__main__'):
         initialize_env(s,vm_ip)
         initialize_docker_env(s,vm_ip)
         upload_container(s,service_name,vm_ip,source,destination,source_path,folder_name)
-        
+        time.sleep(10)
         initialize_container(s,service_name,vm_ip,path)
-        
+        time.sleep(10)
         start_container(s,service_name,vm_ip,port)
         print(key + " Deployed")
-    
-    # app.run(host ='127.0.0.1',port=8000,debug=True)
+
+    app.run(host ='0.0.0.0',port=8000,debug=True)

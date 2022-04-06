@@ -42,13 +42,15 @@ def initialize_env(s,vm_ip):
     print(lines)
 
     if len(lines)<=10:
-        build_cmd = "sudo apt install python3-pip"
+        print("pip3 not found!")
+        build_cmd = "sudo apt install  --no-input python3-pip"
         stdin,stdout,stderr = s.exec_command(build_cmd)
         exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
-    else:
-        print("python3-pip Present!")
+
+    
+        print("pip3 installed")
 
     build_cmd = "pip install azure-storage-file-share"
     stdin,stdout,stderr = s.exec_command(build_cmd)
@@ -201,7 +203,7 @@ def initialize_container(s,service_name,vm_ip,path):
     print(lines)
     
     print("++++Checking if images already exists !.......")
-    buil_cmd = "docker images -q "+service_name.lower()
+    buil_cmd = "sudo docker images -q "+service_name.lower()
     #buil_cmd = "[[docker images -q {"+service_name.lower()+"}]]|| echo 1"
     #buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
     stdin,stdout,stderr = s.exec_command(buil_cmd)
@@ -209,25 +211,28 @@ def initialize_container(s,service_name,vm_ip,path):
     lines = stdout.readlines()
     print(lines)
 
+    if len(lines)==0 :
+        print("++++Making Docker imgaes........  "+ service_name.lower())
+        buil_cmd = "sudo docker build -t "+ service_name.lower() + " " + path
+        stdin,stdout,stderr = s.exec_command(buil_cmd)
+        exit_status = stdout.channel.recv_exit_status()
+        lines = stdout.readlines()
+        print(lines)
+    else:
+        print("Image already present")
     
-    print("++++Making Docker imgaes........  "+ service_name.lower())
-    buil_cmd = "sudo docker build -t "+ service_name.lower() + " " + path
-    stdin,stdout,stderr = s.exec_command(buil_cmd)
-    exit_status = stdout.channel.recv_exit_status()
-    lines = stdout.readlines()
-    print(lines)
 
 def start_container(s,service_name,vm_ip,port):
     #buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
     print("++++Checking if Docker cotainer........  "+ service_name.lower()+" already running....")
-    buil_cmd = "docker ps -q --filter ancestor="+service_name.lower()
+    buil_cmd = "sudo docker ps -q --filter ancestor="+service_name.lower()
     stdin,stdout,stderr = s.exec_command(buil_cmd)
     exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
     
-    #if lines[0]!='1\n':
-    if True :
+
+    if len(lines)==0 :
         print("++++Starting Docker imgaes........  "+ service_name.lower())
         run_cmd = "sudo docker run -p "+ str(port)+":5000 "+ service_name.lower()
         s.exec_command(run_cmd)
