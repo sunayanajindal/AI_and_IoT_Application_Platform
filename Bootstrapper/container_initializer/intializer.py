@@ -117,12 +117,12 @@ def upload_container(s,service_name,vm_ip,source,destination,source_path,folder_
     
     if flag == False:
         sftp_client.put('./Bootstrapper/container_initializer/download_code_base.py' , './download_code_base.py')
-        time.sleep(0.5)
-        command="python3 download_code_base.py "+source_path+" "+ folder_name
+        time.sleep(1)
+        command="python3 download_code_base.py '"+source_path+"' '"+ folder_name +"'"
         stdin,stdout,stderr =s.exec_command(command)
         lines = stdout.readlines()   
         print(lines)
-
+        time.sleep(1)
         # command="sudo rm download_code_base.py"
         # stdin,stdout,stderr =s.exec_command(command)
         # lines = stdout.readlines()   
@@ -157,31 +157,31 @@ def initialize_container(s,service_name,vm_ip,path):
     lines = stdout.readlines()
     print(lines)
 
-    if lines[0]!='1\n':
-        buil_cmd = "sudo systemctl start docker" 
-        stdin,stdout,stderr = s.exec_command(buil_cmd)
-        lines = stdout.readlines()
-        print(lines)
+    # if lines[0]!='1\n':
+    buil_cmd = "sudo systemctl start docker" 
+    stdin,stdout,stderr = s.exec_command(buil_cmd)
+    lines = stdout.readlines()
+    print(lines)
 
-        buil_cmd = "sudo systemctl enable docker" 
-        stdin,stdout,stderr = s.exec_command(buil_cmd)
-        lines = stdout.readlines()
-        print(lines)
+    buil_cmd = "sudo systemctl enable docker" 
+    stdin,stdout,stderr = s.exec_command(buil_cmd)
+    lines = stdout.readlines()
+    print(lines)
 
-        buil_cmd = "sudo systemctl status docker" 
-        stdin,stdout,stderr = s.exec_command(buil_cmd)
-        lines = stdout.readlines()
-        print(lines)
+    buil_cmd = "sudo systemctl status docker" 
+    stdin,stdout,stderr = s.exec_command(buil_cmd)
+    lines = stdout.readlines()
+    print(lines)
 
-        buil_cmd = "sudo docker info" 
-        stdin,stdout,stderr = s.exec_command(buil_cmd)
-        lines = stdout.readlines()
-        print(lines)
-        
-        buil_cmd = "sudo docker build -t "+ service_name.lower() + " " + path
-        stdin,stdout,stderr = s.exec_command(buil_cmd)
-        lines = stdout.readlines()
-        print(lines)
+    buil_cmd = "sudo docker info" 
+    stdin,stdout,stderr = s.exec_command(buil_cmd)
+    lines = stdout.readlines()
+    print(lines)
+    
+    buil_cmd = "sudo docker build -t "+ service_name.lower() + " " + path
+    stdin,stdout,stderr = s.exec_command(buil_cmd)
+    lines = stdout.readlines()
+    print(lines)
 
 def start_container(s,service_name,vm_ip,port):
 
@@ -270,10 +270,12 @@ if(__name__ == '__main__'):
         s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         s.connect(vm_ip, 22, username , password)
 
-        initialize_env(s,vm_ip)
-        initialize_docker_env(s,vm_ip)
-        upload_container(s,service_name,vm_ip,source,destination,source_path,folder_name)
-        initialize_container(s,service_name,vm_ip,path)
+        # initialize_env(s,vm_ip)
+        # initialize_docker_env(s,vm_ip)
+        # upload_container(s,service_name,vm_ip,source,destination,source_path,folder_name)
+        # time.sleep(10)
+        # initialize_container(s,service_name,vm_ip,path)
+        # time.sleep(20)
         start_container(s,service_name,vm_ip,port)
         print(key + " Deployed")
     

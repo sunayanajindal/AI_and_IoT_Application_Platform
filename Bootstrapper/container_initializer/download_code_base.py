@@ -1,4 +1,3 @@
-from numpy import source
 import paramiko
 import json
 import os
@@ -24,11 +23,9 @@ def create_directory(dir_name):
 
 def download_azure_file(source_path,dir_name, file_name):
     try:
-        source_file_path =  dir_name +"/"+file_name
-        print(source_file_path)
+        source_file_path = source_path[2:] + "/"+ dir_name +"/"+file_name
         dest_file_name = dir_name +"/"+file_name
         file_client = ShareFileClient.from_connection_string(connection_string, share_name, source_file_path)
-        print("Downloading to:", dest_file_name)
         with open(dest_file_name, "wb") as data:
             stream = file_client.download_file()
             data.write(stream.readall())
@@ -37,32 +34,27 @@ def download_azure_file(source_path,dir_name, file_name):
 
 def download_files(source_path,folder_name):
     file_is_directory = False
-    # create_directory(folder_name)    
 	
     os.mkdir(folder_name)
 
     my_directory_client = file_client.get_directory_client(directory_path=source_path + '/'+folder_name)
-
+	
     my_list = list(my_directory_client.list_directories_and_files())
 	
     for file in my_directory_client.list_directories_and_files():
         if file['name'][0]!='.':
             if file['is_directory']:
-                # print(file['is_directory'])
-                # print("HI")
-
                 download_files(source_path,folder_name+'/'+file["name"])
             else:
-                # print("HI")
                 download_azure_file(source_path,folder_name, file["name"])
                 
-		# download_azure_file(folder_name,file["name"])
 
-# download_files("./AI_and_IoT_Application_Platform","Server_Life_Cycle_Manager")
+#download_files("./AI_and_IoT_Application_Platform","Request_Manager")
 source_path = sys.argv[1]
 folder_name = sys.argv[2]
 download_files(source_path,folder_name)
-# download_files(".","Aman_folder")
+
+#download_files("./Aman_folder","Aman_folder")
 
 
 print("Done")

@@ -124,7 +124,7 @@ def do_signup(user_type):
             return make_response(jsonify(responseObject)), 409
         else:
             print("yes man")
-            user = dbname[user_type].insert_one(user)
+            user_m = dbname[user_type].insert_one(user)
             
             auth_token = encode_auth_token(str(user['username']) )
             responseObject = {

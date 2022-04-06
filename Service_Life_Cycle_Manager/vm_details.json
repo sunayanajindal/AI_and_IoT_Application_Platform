@@ -7,7 +7,7 @@
     },
     "VM2" : {
         "name":"TESTVM3",
-        "ip" : "20.233.33.141",
+        "ip" : "20.233.36.78",
         "username" : "azureuser",
         "password" : "@mazingSpiderMan"
     }
