@@ -203,5 +203,5 @@ if(__name__ == '__main__'):
     #     "Data_Scientist": Data_Scientist,
     #     "End_User": End_User
     # }
-    app.run(host ='127.0.0.1',port=5001,debug=True)
+    app.run(host ='0.0.0.0',port=5001,debug=True)
     

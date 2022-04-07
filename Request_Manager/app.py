@@ -60,13 +60,9 @@ APP_CONFIGURER = IP_ADDRESSES.find_one({'name': 'Sensor_Binder'})['URL']
 #         SCHEDULER = i['SCHEDULER']
 
 
-
-
-
-
-
 dbname = client['AI_PLATFORM']
 app_req_db = dbname["app_requirement"]
+users_apps = dbname["app_user_node"]
 
 @app.route('/')
 def home():
@@ -107,8 +103,8 @@ def dashboard(user_type, auth_token ="" ):
     if user_type == "Platform_Configurer":
         SENSOR_CONFIGURER = IP_ADDRESSES.find_one({'name': 'Sensor_Manager'})['URL']
         response = make_response(render_template("configurer.html",URL = SENSOR_CONFIGURER,username= payload['sub'], token = auth_token,user_type=user_type))
+    
     elif user_type == "End_User":
-        ########################
         apps_list = list(app_req_db.find())
         app_names = []
         app_ids = []
@@ -117,7 +113,22 @@ def dashboard(user_type, auth_token ="" ):
             app_names.append(app_instance['app_name'])
             app_ids.append(app_instance['app_id'])
 
-        response = make_response(render_template("choose_app.html", app_names=app_names, app_ids=app_ids))
+        username = payload['sub']
+        sche_apps = []
+        sche_app_urls = []
+
+        for i in list(users_apps.find()):
+            if i['enduser'] == username:
+                sche_apps.append(i['app'])
+                url = "http://"+  i['ip']+':'+str(i['port'])
+                sche_app_urls.append(url)
+
+        for i in range(len(app_names)):
+            if app_names[i] in sche_apps:
+                app_names.pop(i)
+                app_ids.pop(i)
+
+        response = make_response(render_template("choose_app.html", sche_apps = sche_apps, sche_app_urls = sche_app_urls, app_names=app_names, app_ids=app_ids))
         #response = make_response(render_template("choose_app.html",URL = APP_CONFIGURER,user_type=user_type))
     else:
 
@@ -285,4 +296,4 @@ def upload(user_type):
 
 
 if(__name__ == '__main__'):
-    app.run(host ='127.0.0.1',port=5000,debug=True)
+    app.run(host ='0.0.0.0',port=5000,debug=True)

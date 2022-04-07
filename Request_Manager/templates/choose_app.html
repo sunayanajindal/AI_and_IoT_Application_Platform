@@ -45,9 +45,11 @@ h1 {
   max-width: 40rem;
   margin: 5rem auto;
   background: #fff;
+ 
   width: 100%;
   padding: 3rem 5rem 0;
   border-radius: 1px;
+  padding-bottom: 3rem;
 }
 .container::before {
   content: '';
@@ -443,8 +445,18 @@ fieldset {
         <button type="submit" class="button"><span>Submit</span></button>
       </div>
       
-
     </form>
+    
+  </div>
+  <div class=container>
+    
+    <h2> Scheduled Applications </h2>
+    {% if sche_apps|length == 0%}
+      <li>None</li>
+    {% endif %}
+    {% for i in range(sche_apps|length)%}
+      <li><a href="{{sche_app_urls[i]}}">{{sche_apps[i]}}</a></li>
+    {% endfor%}
   </div>
   </body>
 </html>
