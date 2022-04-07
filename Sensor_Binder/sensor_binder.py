@@ -32,7 +32,7 @@ def processRequest(appSensorReq):
                 key = currentSensorReq + str(count)
                 # print(key)
                 topic_id =str(sensorInstances[j]['_id'])+"_topic"
-                val = {"type": sensorInstances[j]['type'] , "location" : sensorInstances[j]['location'], "topic" : topic_id}
+                val = {"type": sensorInstances[j]['type'] , "location" : sensorInstances[j]['location'], "topic" : topic_id, "serial_num" : i["serial_num"]}
                 binding_map.append(val)
                 sensorAvailable = True
                 break

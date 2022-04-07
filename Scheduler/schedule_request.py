@@ -3,6 +3,7 @@ from flask import Flask, request, render_template, redirect
 import threading
 from flask import flash
 from pymongo import MongoClient
+import requests
 import schedule
 import time
 import datetime
@@ -40,11 +41,14 @@ def writelog(msg):
 def sendToDeployer (data,repeatStatus, operation):
     msg="Request from username: "+data['username']+" to start service sent to deployer"
     writelog(msg)
+    SOME_URL = "http://127.0.0.1:5005"
     if(operation == "start"):
         print("Forwarding start request to the Deployer")
+        response=requests.post(SOME_URL + "/deployApp",json=scheduling_data).content.decode()
         # response=requests.post("{{URL}}/startRequest",json=scheduling_data).content.decode()
     else:
         print("Forwarding stop request to the Deployer")
+        response=requests.post(SOME_URL +"/removeApp",json=scheduling_data).content.decode()
         # response=requests.post("http://127.0.0.1:5005/stopRequest",json=scheduling_data).content.decode()
 
     if(repeatStatus=='False'):

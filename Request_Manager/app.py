@@ -63,7 +63,10 @@ APP_CONFIGURER = IP_ADDRESSES.find_one({'name': 'Sensor_Binder'})['URL']
 dbname = client['AI_PLATFORM']
 app_req_db = dbname["app_requirement"]
 users_apps = dbname["app_user_node"]
-
+app_node=dbname["app_nodes"]
+model_node=dbname["model_nodes"]
+sensor_node=dbname["SENSOR_INFO"]
+mode_node=dbname["model_users"]
 @app.route('/')
 def home():
    return render_template('index.html')
@@ -97,7 +100,7 @@ def dashboard(user_type, auth_token ="" ):
     to_send={}
     #to_send["auth_token"] = auth_token
     to_send["username"] = payload['sub']
-
+    username = payload['sub']
     # response = requests.post(MODEL_APP_REPO + '/get_models',json=to_send).content.decode()
     # model_list = response.split()
     if user_type == "Platform_Configurer":
@@ -131,8 +134,26 @@ def dashboard(user_type, auth_token ="" ):
         response = make_response(render_template("choose_app.html", sche_apps = sche_apps, sche_app_urls = sche_app_urls, app_names=app_names, app_ids=app_ids))
         #response = make_response(render_template("choose_app.html",URL = APP_CONFIGURER,user_type=user_type))
     else:
-
-        response = make_response(render_template("dashboard.html",user_type=user_type,DEPLOYER = DEPLOYER))
+        mode_node.insert_many([{"model":"m1", "uname":"Ammu", },
+                       {"model":"m2", "uname":"Priya"}])
+        all_model_list=model_node.find({})
+        print("hello")
+        print(username)
+        ds_model_list=mode_node.find({"uname":username})
+        sensor_list=sensor_node.find({})
+        print(ds_model_list)
+        # mode_nodes=mode_node
+        # print(all_model_list)
+        # print(all_model_list)
+        # print(sensor_list)
+        l=[]
+        # for each in ds_model_list:
+        #     # l.append(each['model'])
+        #     print("This is Aman")
+        #     print(each['model'])
+        # print(l)
+        response = make_response(render_template("dashboard.html",user_type=user_type,username=username,DEPLOYER = DEPLOYER,ds_model_list=ds_model_list,all_model_list=all_model_list,sensor_list=sensor_list ))
+        #response = make_response(render_template("dashboard.html",user_type=user_type,DEPLOYER = DEPLOYER))
     # if user_type == "Data_Scientist":
     #     response = make_response(render_template("data_sci_dashboard.html",response = model_list))
     #     response = make_response(render_template("data_sci_dashboard.html"))
