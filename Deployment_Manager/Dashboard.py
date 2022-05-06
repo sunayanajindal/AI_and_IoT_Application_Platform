@@ -4,10 +4,11 @@ from flask import render_template
 #from matplotlib import container
 import paramiko
 import time
+import json
 import os
 import requests
 from pymongo import MongoClient
-import load_balancer
+import Load_Balancer
 from flask import Flask
 from flask import request
 from numpy import source
@@ -95,6 +96,7 @@ def home():
 
 @app.route("/submit", methods=['GET', 'POST'])
 def submit():
+    print("Inside submit ===", flush=True)
     if (request.method == 'POST'):
         f1 = request.files["f1"]
         f2 = request.files["f2"]
@@ -117,6 +119,7 @@ def submit():
 
     col1 = dbname["model_nodes"]
     col2 = dbname["app_nodes"]
+    print("line 121 ===")
 
     if f1.filename!='':
         if f2.filename=='' or f3.filename=='':
@@ -147,6 +150,7 @@ def submit():
     if f6.filename!='' and f6.filename[-5:]!=".json":
         return "Wrong type of file uploaded - json"
 
+    print("line 152 ===", flush=True)
 
     if(f1.filename!=''):
         fname_len = len(f1.filename)
@@ -154,7 +158,9 @@ def submit():
         query = {"model":modelName}
         if(len(list(col1.find(query)))>0):
             return "Model already deployed"
-    
+
+    print("line 161 ===", flush=True)
+
     # if(f4.filename!=''):    
     #     fname_len = len(f4.filename)
     #     appName = f4.filename[0:fname_len-4]
@@ -163,8 +169,8 @@ def submit():
     #         return "App already deployed"
 
         
-    print(request.form.get('role'))
-    print(request.form.get('username'))
+    # print(request.form.get('role'), flush=True)
+    # print(request.form.get('username'), flush=True)
 
     print(data)
     # r = requests.post('http://127.0.0.1:5000/',json=data)
@@ -172,10 +178,10 @@ def submit():
     client = MongoClient(CONNECTION_STRING)
 
     dbname = client['AI_PLATFORM']
-    col1 = dbname['node']
+    col1 = dbname["VM_DETAILS"]
     col2 = dbname['model_nodes']
 
-    # username, password, ip = load_balancer.choose_best_node()
+    # username, password, ip = Load_Balancer.choose_best_node()
     # print(ip)
 
     # myquery = { "ip": ip }
@@ -188,6 +194,7 @@ def submit():
 
     role = upload()
     if role == "model":
+        print("line 196 ===", flush=True)
         deploy_model(modelName)
     
     return "ok"
@@ -204,7 +211,8 @@ def deployApp():
 
     zipfile = name
 
-    username, password, ip = load_balancer.choose_best_node()
+    username, password, ip = Load_Balancer.choose_best_node()
+    print(ip, flush = True)
 
     s = paramiko.SSHClient()
     s.load_system_host_keys()
@@ -222,7 +230,7 @@ def deployApp():
     ftp_client.put('./'+name+'.zip' , './App/'+zipfile+'.zip')
     time.sleep(0.5)
     print("unzipping")
-    stdin,stdout,stderr = s.exec_command('cd App;unzip '+zipfile+'.zip')
+    stdin,stdout,stderr = s.exec_command('cd App;unzip -o '+zipfile+'.zip')
     print(333,stderr.readline(),stdout.readline())
     print('./App/'+zipfile+'/Dockerfile')
     ftp_client.put('./Dockerfile' , './App/'+zipfile+'/Dockerfile')
@@ -236,7 +244,7 @@ def deployApp():
 
     dbname = client['AI_PLATFORM']
 
-    col1 = dbname['node']
+    col1 = dbname["VM_DETAILS"]
     myquery = { "ip": ip }
     vm = col1.find(myquery)
     service_port = 0
@@ -271,6 +279,7 @@ def deployApp():
     myquery = {"app":appName,"enduser":user_name}
     col.delete_one(myquery)
     data_entry = [{"app":appName,"enduser":user_name,"ip": ip,"username": username,"password":password,"port":service_port,"image_id":image_id,"container_id":container_id}]
+
     for i in data_entry:
         a = col.insert_one(i)
     return "ok"
@@ -303,8 +312,9 @@ def upload():
 
     if uploaded_file1.filename != '':
         print("calling script")
-        os.system("python3 dockerFileGenerator.py " + uploaded_file3.filename + " " + uploaded_file1.filename)
-        os.system("python3 wrapperClassGenerator.py " + uploaded_file2.filename +" "+uploaded_file1.filename)
+        model_name  = uploaded_file4.filename[:-4]
+        os.system("python3 DockerFileGenerator.py " + uploaded_file3.filename + " " +  uploaded_file1.filename + " " + model_name)
+        os.system("python3 WrapperClassGenerator.py " + uploaded_file2.filename + " " + uploaded_file1.filename)
         print("calling script")
         # os.system(cmd)
 
@@ -317,10 +327,25 @@ def upload():
         return "model"
 
     else:
-        
-        os.system("python3 Application_docker_generator.py " + uploaded_file6.filename ) 
+        app_or_model_name  = uploaded_file4.filename[:-4]+"_app"
+
+        configFile = open(uploaded_file6.filename,'r')
+        config = json.load(configFile)
+        configFile.close()
+        print("config")
+        print(config)
+        sensor_data = json.dumps(config["Application"]["sensor"])
+        os.system("python3 Application_docker_generator.py " + uploaded_file6.filename + " " + uploaded_file4.filename[:-4]) 
 
         app_or_model_name  = uploaded_file4.filename[:-4]+"_app"
+
+        CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
+        client = MongoClient(CONNECTION_STRING)
+
+        dbname = client['AI_PLATFORM']
+        app_req_db = dbname["app_requirement"]
+
+        app_req_db.insert_one({"app_id": uploaded_file4.filename[:-4], "app_name": uploaded_file4.filename[:-4], "sensors": sensor_data})
 
         Upload_file_and_create_dir(app_or_model_name,uploaded_file4.filename)
         upload_file(app_or_model_name,"Dockerfile")      
@@ -328,19 +353,31 @@ def upload():
         return "application"
 
 def deploy_model(name):
-
+    print("In deploy_model 1", flush=True)
     download_files(name+"_model")
 
-    username, password, ip = load_balancer.choose_best_node()
+    print("after download files", flush=True)
+
+    username, password, ip = Load_Balancer.choose_best_node()
+
+    print("After load balancer ", flush=True)
+    print("Chosen load balancer - ")
+    print("user - ", username)
+    print("password - ", password)
+    print("ip - ", ip)
 
     s = paramiko.SSHClient()
     s.load_system_host_keys()
     s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     s.connect(ip, 22, username, password)
-    
+
+    print("after load balancer ", flush=True)
+
     modelName = name # without .pkl
     stdin,stdout,stderr = s.exec_command('mkdir -p ./Model')
     stdin,stdout,stderr = s.exec_command('cd Model;mkdir ./'+modelName)
+
+    print("after making model folder.", flush=True)
 
     ftp_client=s.open_sftp()
 
@@ -350,6 +387,9 @@ def deploy_model(name):
     time.sleep(0.5)
     ftp_client.put('./'+modelName+'.pkl' , './Model/'+modelName+'/'+modelName+'.pkl')
     time.sleep(0.5)
+
+    print("Moved Dockerfile, WrapperClass and pickle file into VM.", flush=True)
+
     # stdin,stdout,stderr = s.exec_command('cd App')
 
     CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
@@ -358,17 +398,20 @@ def deploy_model(name):
 
     dbname = client['AI_PLATFORM']
 
-    col1 = dbname['node']
+    col1 = dbname["VM_DETAILS"]
     myquery = { "ip": ip }
     vm = col1.find(myquery)
     service_port = 0
     for i in vm:
         service_port = i["first_free_port"]
     #print(port)
+    print("retrived from DB",flush=True)
 
     # getting frst availab;e port on that VM
     p = service_port + 1
     col1.update_one({"ip":ip},{"$set":{"first_free_port":p}})
+
+    print("Updated DB",flush=True)
 
     col2 = dbname["model_nodes"]
     myquery = {"model":modelName}
@@ -376,15 +419,18 @@ def deploy_model(name):
     data_entry = [{"ip": ip,"username": username,"password":password,"model":modelName,"port":service_port}]
     for i in data_entry:
         a = col2.insert_one(i)
-    
 
+    print("Building Docker Image",flush=True)
     # Docker Docker
     stdin,stdout,stderr = s.exec_command('cd Model/'+modelName+';sudo docker build . -t '+ modelName)
+    print("Model docker image built.",flush=True)
     # App/serviceName/app.py
     print(stderr.readline(),stdout.readline())
 
+    print("Running Docker Container",flush=True)
     stdin,stdout,stderr = s.exec_command('cd Model/'+modelName+';sudo docker run -p '+str(service_port)+':5000 '+modelName)
     print(stderr.readline(),stdout.readline())
+    print("Model docker container running.",flush=True)
 
     os.system("rm WrapperClass.py Dockerfile "+name+".pkl")
 
@@ -450,4 +496,5 @@ def removeApp():
 @app.route("/healthCheck", methods=['GET', 'POST'])
 def healthCheck():
     return "ok"
+
 app.run(host="0.0.0.0",port="5005")

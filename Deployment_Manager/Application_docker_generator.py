@@ -28,27 +28,25 @@ def dockerGenerator(config_file_path, service_name):
         #         if ev_key == 'flask':
         #             str += 'RUN pip3 install flask\n\n'
 
-
-
-
-
                 # to-do for more tech
         # entry_point = config['Application']['entryPoint']#string
     
 
-    for dependency in dependencies:
-        str += "RUN pip3 install " + dependency + "\n"
+        for dependency in dependencies:
+            str += "RUN pip3 install " + dependency + "\n"
 
-    # for filename in filenames:
-    #     str += "ADD " + filename + " .\n"
+        # for filename in filenames:
+        #     str += "ADD " + filename + " .\n"
     
+        #for dynamically fetching Kafka URL
+        str += "RUN pip3 install pymongo\n"    
     
-    str+='CMD ["python3","-m","flask","run","--host=0.0.0.0"]'
-    print(str)
+        str+='CMD ["python3","-m","flask","run","--host=0.0.0.0"]'
+        print(str)
     df.write(str)
     df.close()
 
 # config file, service name
-dockerGenerator(sys.argv[1],"titanic_app")
+dockerGenerator(sys.argv[1], sys.argv[2])
 
 # dockerGenerator("./config.json","service-1")

@@ -196,6 +196,10 @@ def authenticate(user_type):
                 }
             return make_response(jsonify(responseObject)), 401
 
+@app.route("/healthCheck", methods=['GET', 'POST'])
+def healthCheck():
+    return "ok"
+
 if(__name__ == '__main__'):
     # db.create_all()
     # userDict = {

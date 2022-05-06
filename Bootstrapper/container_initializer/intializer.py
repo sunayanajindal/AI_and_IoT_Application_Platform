@@ -8,6 +8,11 @@ from azure.mgmt.compute import ComputeManagementClient
 from azure.storage.fileshare import ShareFileClient
 from azure.storage.fileshare import ShareDirectoryClient
 from azure.storage.fileshare import ShareClient
+
+import sys
+sys.path.insert(1, './Bootstrapper/vm_provisioning')
+import vm_provisioner
+
 # app = Flask(__name__)
 # app.config['SECRET_KEY'] = 'secretkey'
 
@@ -21,7 +26,7 @@ share_name="testing-file-share"
 ip_dbname = client['AI_PLATFORM']
 IP_ADDRESSES = ip_dbname["MODULE_URL"]
 
-#app1 = dbname["node"]
+#app1 = dbname["VM_DETAILS"]
 
 f = open('./Bootstrapper/subscription_config.json')
 subs = json.load(f)
@@ -30,16 +35,29 @@ credentials = subs["credentials"]
 
 f1 = open('./Bootstrapper/vm_user_config.json')
 vm_user = json.load(f1)
-f2 = open('./Bootstrapper/vm_details.json')
-vm_details = json.load(f2)
-f3 = open('./Bootstrapper/container_initializer/bootstrap_initializer_config.json')
-initialize_details = json.load(f3)
-f4 = open('./Bootstrapper/container_initializer/initializer_config.json')
-slcm_initialize_details = json.load(f4)
+# f2 = open('./Bootstrapper/vm_details.json')
+# vm_details = json.load(f2)
+vm_details_db = ip_dbname["VM_DETAILS"]
+vm_details_collection = vm_details_db.find({})
+vm_details = {}
+for x in vm_details_collection:
+    vm_details[x['name']]=x
+# print(vm_details["VM1"]["ip"])
 
+f3 = open('./Bootstrapper/container_initializer/bootstrap_initializer_config.json')
+
+f4 = open('./Bootstrapper/container_initializer/initializer_config.json')
+slcm_initialize_details = json.load(f3)
+initialize_details = json.load(f4)
 
 def initialize_env(s,vm_ip):
     print("++++Initializing Environment")
+    build_cmd = "sudo apt-get update"
+    stdin,stdout,stderr = s.exec_command(build_cmd)
+    exit_status = stdout.channel.recv_exit_status()
+    lines = stdout.readlines()
+    print(lines)
+
     build_cmd = "pip3"
     stdin,stdout,stderr = s.exec_command(build_cmd)
     exit_status = stdout.channel.recv_exit_status()
@@ -48,7 +66,7 @@ def initialize_env(s,vm_ip):
 
     if len(lines)<=10:
         print("pip3 not found!")
-        build_cmd = "sudo apt install  --no-input python3-pip"
+        build_cmd = "sudo apt install -y python3-pip"
         stdin,stdout,stderr = s.exec_command(build_cmd)
         exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
@@ -57,17 +75,34 @@ def initialize_env(s,vm_ip):
     
         print("pip3 installed")
 
-    build_cmd = "pip install azure-storage-file-share"
+    build_cmd = "pip"
     stdin,stdout,stderr = s.exec_command(build_cmd)
     exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
+
+    if len(lines)<=10:
+        print("pip not found!")
+        build_cmd = "sudo apt install -y python-pip"
+        stdin,stdout,stderr = s.exec_command(build_cmd)
+        exit_status = stdout.channel.recv_exit_status()
+        lines = stdout.readlines()
+        print(lines)
+
+    
+        print("pip installed")
 
     build_cmd = "pip install azure-storage-file-share"
     stdin,stdout,stderr = s.exec_command(build_cmd)
     exit_status = stdout.channel.recv_exit_status()
     lines = stdout.readlines()
     print(lines)
+
+    # build_cmd = "pip3 install azure-storage-file-share"
+    # stdin,stdout,stderr = s.exec_command(build_cmd)
+    # exit_status = stdout.channel.recv_exit_status()
+    # lines = stdout.readlines()
+    # print(lines)
 
 def initialize_docker_env(s,vm_ip):
     print("++++Initializing Docker Environment")
@@ -171,7 +206,7 @@ def upload_container(s,service_name,vm_ip,source,destination,source_path,folder_
 
     sftp_client.close()
 
-def initialize_container(s,service_name,vm_ip,path):
+def initialize_container(s,service_name,vm_ip,path,port):
     
     buil_cmd = "[[docker images -q {"+service_name.lower()+"}]]|| echo 1"
     #buil_cmd = "[[docker ps -q -f name={"+service_name.lower()+"}]] || echo 1"
@@ -222,6 +257,7 @@ def initialize_container(s,service_name,vm_ip,path):
         exit_status = stdout.channel.recv_exit_status()
         lines = stdout.readlines()
         print(lines)
+        IP_ADDRESSES.insert_one({'name':key,'url':"http://" +vm_ip +":"+ str(port)})
     else:
         print("Image already present")
     
@@ -238,7 +274,7 @@ def start_container(s,service_name,vm_ip,port):
 
     if len(lines)==0 :
         print("++++Starting Docker imgaes........  "+ service_name.lower())
-        run_cmd = "sudo docker run -p "+ str(port)+":5000 "+ service_name.lower()
+        run_cmd = "sudo docker run -p "+ str(port)+":"+str(port)+" "+ service_name.lower()
         s.exec_command(run_cmd)
         exit_status = stdout.channel.recv_exit_status()
         print("Started Container....")
@@ -246,12 +282,17 @@ def start_container(s,service_name,vm_ip,port):
         print("VM already Up and running")
 
 
-def restart_vm(GROUP_NAME,VM_NAME):
-    compute_client = ComputeManagementClient(credentials, subscription_id)
-    async_vm_restart = compute_client.virtual_machines.restart(
-            GROUP_NAME, VM_NAME)
-    async_vm_restart.wait()
-    pass
+# def restart_vm(GROUP_NAME,VM_IP):
+#     for i in vm_details.keys():
+#         if vm_details[i]['ip'] == VM_IP :
+#             VM_NAME = i
+#             GROUP_NAME = vm_details[i]['group']
+#             compute_client = ComputeManagementClient(credentials, subscription_id)
+#             async_vm_restart = compute_client.virtual_machines.restart(
+#                     GROUP_NAME, VM_NAME)
+#             async_vm_restart.wait()
+#             break
+
 
 # for key in initialize_details:
 # initialize_docker_env("VM2")
@@ -328,11 +369,30 @@ def restart():
     #app1.updtae_one({"ip":service_ip},{"$set":{"status": "active"}})
 
 
-if(__name__ == '__main__'):   
+if(__name__ == '__main__'):  
+    
     
     #client.connect("20.213.161.182", 22, "IASHackathon1", "IASHackathon1")
     #client.connect("20.216.18.166", 22, username =  "azureuser", password = "@mazingSpiderMan",allow_agent=True,look_for_keys = False)
-    
+    vm_provisioner.provision_vm()
+    time.sleep(5)
+    print(vm_details)
+    vm_details_collection = vm_details_db.find({})
+    vm_details = {}
+    for x in vm_details_collection:
+        vm_details[x['name']]=x
+    INIT_DETAILS = ip_dbname["INIT_DETAILS"]
+    for key in initialize_details:
+        a = INIT_DETAILS.find_one({'name':key})
+        if a != None:
+            if a['vm_name'] != initialize_details[key]['vm_name']:
+                INIT_DETAILS.update_one({'name':key},{'$set':{'vm_name':initialize_details[key]['vm_name']}})
+        else:
+            dict = initialize_details[key]
+            dict['name']=key
+            INIT_DETAILS.insert_one(dict)
+        
+
     for key in slcm_initialize_details:
         vm_ip = vm_details[slcm_initialize_details[key]["vm_name"]]["ip"]
         source = slcm_initialize_details[key]["source"]
@@ -345,27 +405,14 @@ if(__name__ == '__main__'):
         username = vm_details[slcm_initialize_details[key]["vm_name"]]["username"]
         password = vm_details[slcm_initialize_details[key]["vm_name"]]["password"]
         
-        IP_ADDRESSES.update_one({'name': key},{ '$set':{'URL': "http://"+vm_ip+":"+str(slcm_initialize_details[key]["port"]) } })
+        a = IP_ADDRESSES.find_one({'name':key})
+        if a != None:
+            if a['url'] != "http://" +vm_ip +":"+ str(port):
+                IP_ADDRESSES.update_one({'name':key},{'$set':{'name':key,'url':"http://" +vm_ip +":"+ str(port)}})
+        else:
+            IP_ADDRESSES.insert_one({'name':key,'url':"http://" +vm_ip +":"+ str(port)})
 
-        
-    
-    for key in initialize_details:
-        vm_ip = vm_details[initialize_details[key]["vm_name"]]["ip"]
-        source = initialize_details[key]["source"]
-        destination = initialize_details[key]["destination"]
-        source_path = initialize_details[key]["source_path"]
-        folder_name = initialize_details[key]["folder_name"]
-        service_name = key
-        path = destination
-        port = initialize_details[key]["port"]
-        username = vm_details[initialize_details[key]["vm_name"]]["username"]
-        password = vm_details[initialize_details[key]["vm_name"]]["password"]
-        
-
-        IP_ADDRESSES.update_one({'name': key},{ '$set':{'URL': "http://"+vm_ip+":"+str(initialize_details[key]["port"]) } })
-        
-
-        if initialize_details[key]["vm_name"] != "VM0":
+        if slcm_initialize_details[key]["vm_name"] != "VM0":
             s = paramiko.SSHClient()
             s.load_system_host_keys()
             s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -375,9 +422,12 @@ if(__name__ == '__main__'):
             initialize_docker_env(s,vm_ip)
             upload_container(s,service_name,vm_ip,source,destination,source_path,folder_name)
             time.sleep(10)
-            initialize_container(s,service_name,vm_ip,path)
+            initialize_container(s,service_name,vm_ip,path,port)
             time.sleep(10)
             start_container(s,service_name,vm_ip,port)
             print(key + " Deployed")
-
+    
+    exit()
+        
+            
     #app.run(host ='0.0.0.0',port=8000,debug=True)

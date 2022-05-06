@@ -1,25 +1,18 @@
 {
-    "Application": {
-        "userName": "11",
-        "appName": "titanic_app",
-        "models_used": [
-            "titanic_model"
-        ],
-        "sensor": {
-            "light_sensor": 1
-        },
+    "Model": {
+        "username": "11",
+        "modelName": "emotion_model",
         "dependencies": [
-            "numpy==1.21.5",
             "Flask",
             "requests",
-            "kafka-python",
+            "numpy",
+            "sklearn",
             "pymongo",
-            "sklearn"
+            "tensorflow",
+            "dill",
+            "Pillow",
+            "opencv-python"
         ],
-        "filenames": [
-            "app.py",
-            "api.py"
-        ],
-        "entryPoint": "app.py"
+        "inputDataFormat": "image"
     }
 }

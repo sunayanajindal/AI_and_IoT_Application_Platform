@@ -6,13 +6,13 @@ dbname = client['AI_PLATFORM']
 
 IP_ADDRESSES = dbname["MODULE_URL"]
 ip_table = IP_ADDRESSES.find_one({'name': 'Request_Manager'})
-print(ip_table['URL'])
+print(ip_table['url'])
 
-IP_ADDRESSES.update_one({'name': 'Request_Manager'},{ '$set':{'URL':"123"} })
+IP_ADDRESSES.update_one({'name': 'Request_Manager'},{ '$set':{'url':"123"} })
 
 ip_table = IP_ADDRESSES.find_one({'name': 'Request_Manager'})
-print(ip_table['URL'])
-# REQUEST_MANAGER =  ip_table['REQUEST_MANAGER']['URL']
-# SENSOR_CONFIGURER = ip_table['SENSOR_CONFIGURER']['URL']
+print(ip_table['url'])
+# REQUEST_MANAGER =  ip_table['REQUEST_MANAGER']['url']
+# SENSOR_CONFIGURER = ip_table['SENSOR_CONFIGURER']['url']
       
     

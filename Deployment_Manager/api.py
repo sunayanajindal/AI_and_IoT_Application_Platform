@@ -5,7 +5,6 @@ from kafka import KafkaConsumer
 # from tkinter import N
 from pymongo import MongoClient
 
-
 data = ""
 
 def apiFile(scheduling_data):
@@ -20,6 +19,7 @@ def getSensorData(sensor_type, serial_num, app_id):
     CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
     client = MongoClient(CONNECTION_STRING)
     dbname = client['AI_PLATFORM']
+    IP_ADDRESSES = dbname["MODULE_URL"]
     all_instances = dbname["USER_APP_SENSOR"]
 
     # 
@@ -34,8 +34,10 @@ def getSensorData(sensor_type, serial_num, app_id):
             topic = i["topic"]
             break
             # print(topic)
-
-    consumer = KafkaConsumer(topic,bootstrap_servers=['20.219.122.194:9092'], auto_offset_reset = "latest", value_deserializer=lambda m: json.loads(m.decode("utf-8")))
+    kafka_ip = IP_ADDRESSES.find_one({'name': 'Kafka'})['url']
+    start = kafka_ip.find("/")+2
+    end = kafka_ip.rfind(":")
+    consumer = KafkaConsumer(topic,bootstrap_servers=[kafka_ip[start:end]+':9092'], auto_offset_reset = "latest", value_deserializer=lambda m: json.loads(m.decode("utf-8")))
 
     for message in consumer:
         print(message.value)

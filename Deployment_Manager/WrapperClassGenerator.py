@@ -4,9 +4,9 @@ import sys
 
 str = ""
 
-str += """import pickle
+str += """import dill as pickle
 import json
-
+import random
 from flask import Flask,request
 
 app = Flask(__name__)\n\n"""

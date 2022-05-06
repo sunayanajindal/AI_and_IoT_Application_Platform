@@ -13,16 +13,17 @@ import certifi
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
 
+is_local = False
 
 CONNECTION_STRING = "mongodb://root:root@cluster0-shard-00-00.llzhh.mongodb.net:27017,cluster0-shard-00-01.llzhh.mongodb.net:27017,cluster0-shard-00-02.llzhh.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-u1s4tk-shard-0&authSource=admin&retryWrites=true&w=majority"
 client = MongoClient(CONNECTION_STRING)
 ip_dbname = client['AI_PLATFORM']
 IP_ADDRESSES = ip_dbname["MODULE_URL"]
 
-REQUEST_MANAGER = 'http://20.216.18.166:5000'
-AUTHENTICATION_MANAGER = 'http://20.233.33.141:5001'
+REQUEST_MANAGER = 'http://127.0.0.1:5000'
+AUTHENTICATION_MANAGER = 'http://127.0.0.1:5001'
 MODEL_APP_REPO = 'http://127.0.0.1:5002'
-DEPLOYER = "http://127.0.0.1:5555"
+DEPLOYER = "http://127.0.0.1:5005"
 SCHEDULER = "http://127.0.0.1:5011"
 SCHBACK = "http://127.0.0.1:5011"
 SLCM = ""
@@ -31,12 +32,12 @@ APP_CONFIGURER = "http://127.0.0.1:6005"
 SENSOR_BINDER = "http://127.0.0.1:6005"
 
 
-REQUEST_MANAGER =  IP_ADDRESSES.find_one({'name': 'Request_Manager'})['URL']
 
 
-SCHBACK = IP_ADDRESSES.find_one({'name': 'Scheduler'})['URL']
 
-APP_CONFIGURER = IP_ADDRESSES.find_one({'name': 'Sensor_Binder'})['URL']
+# SCHBACK = IP_ADDRESSES.find_one({'name': 'Scheduler'})['url']
+
+# APP_CONFIGURER = IP_ADDRESSES.find_one({'name': 'Sensor_Binder'})['url']
 
 
 # for i in ip_table:
@@ -71,6 +72,10 @@ mode_node=dbname["model_users"]
 def home():
    return render_template('index.html')
 
+@app.route("/logout")
+def logout():
+    return render_template('index.html')
+
 @app.route('/signin', methods = ['POST'])
 def signin_page():
     user_type = request.form['user_type']
@@ -86,7 +91,7 @@ def session_expired(user_type,msg):
 
 @app.route('/Dashboard/<user_type>', methods = ['GET','POST'])
 def dashboard(user_type, auth_token ="" ):
-  
+    DEPLOYER = "http://127.0.0.1:5005"
     if auth_token == "":
         auth_token = request.headers.get('Authorization')
         if auth_token == None:
@@ -104,8 +109,12 @@ def dashboard(user_type, auth_token ="" ):
     # response = requests.post(MODEL_APP_REPO + '/get_models',json=to_send).content.decode()
     # model_list = response.split()
     if user_type == "Platform_Configurer":
-        SENSOR_CONFIGURER = IP_ADDRESSES.find_one({'name': 'Sensor_Manager'})['URL']
-        response = make_response(render_template("configurer.html",URL = SENSOR_CONFIGURER,username= payload['sub'], token = auth_token,user_type=user_type))
+        SENSOR_CONFIGURER = "http://127.0.0.1:6001"
+        SLCM = "http://127.0.0.1:8000"
+        if not is_local:
+            SLCM = IP_ADDRESSES.find_one({'name': 'Service_Life_Cycle_Manager'})['url']
+            SENSOR_CONFIGURER = IP_ADDRESSES.find_one({'name': 'Sensor_Manager'})['url']
+        response = make_response(render_template("configurer.html",SLCM_URL = SLCM, URL = SENSOR_CONFIGURER,username= payload['sub'], token = auth_token,user_type=user_type))
     
     elif user_type == "End_User":
         apps_list = list(app_req_db.find())
@@ -167,6 +176,9 @@ def dashboard(user_type, auth_token ="" ):
 
 @app.route("/sensor_location/", methods=['POST', 'GET'])
 def sensor_requirements():
+    SCHEDULER = "http://127.0.0.1:5011"
+    SENSOR_BINDER = "http://127.0.0.1:6005"
+
     user_type = "End_User"
     auth_token=''
     if auth_token == "":
@@ -217,16 +229,17 @@ def sensor_requirements():
     for sensor_type in app_sensor_req:
         sensor_kinds.append(sensor_type)
         sensor_count.append(app_sensor_req[sensor_type])
-    
-    SENSOR_BINDER = IP_ADDRESSES.find_one({'name': 'Sensor_Binder'})['URL']
-    SCHEDULER = IP_ADDRESSES.find_one({'name': 'Scheduler'})['URL']
+    if not is_local:
+        SENSOR_BINDER = IP_ADDRESSES.find_one({'name': 'Sensor_Binder'})['url']
+        SCHEDULER = IP_ADDRESSES.find_one({'name': 'Scheduler'})['url']
     return render_template("sensor_location.html", error=error, given_app_id = given_app_id, username = payload['sub'], SCHEDULER = SCHEDULER, URL = SENSOR_BINDER,sensor_kinds=sensor_kinds, sensor_count=sensor_count)
 
 @app.route('/register/<user_type>', methods = ['POST'])
 def register(user_type):
     username=request.form['username']
     password=request.form['password']
-    AUTHENTICATION_MANAGER = IP_ADDRESSES.find_one({'name': 'Authentication_Manager'})['URL']
+    if not is_local:
+        AUTHENTICATION_MANAGER = IP_ADDRESSES.find_one({'name': 'Authentication_Manager'})['url']
     CREATE_URL = AUTHENTICATION_MANAGER + '/create_user/'
     response = requests.post(CREATE_URL+user_type,json={'username':username,'password':password}).content.decode()
     payload = json.loads(response)
@@ -240,7 +253,9 @@ def register(user_type):
 def login(user_type):
     username=request.form['username']
     password=request.form['password']
-    AUTHENTICATION_MANAGER = IP_ADDRESSES.find_one({'name': 'Authentication_Manager'})['URL']
+    AUTHENTICATION_MANAGER = 'http://127.0.0.1:5001'
+    if not is_local:
+        AUTHENTICATION_MANAGER = IP_ADDRESSES.find_one({'name': 'Authentication_Manager'})['url']
     AUTH_URL = AUTHENTICATION_MANAGER + '/authenticate_user/'
     response = requests.post(AUTH_URL+user_type,json={'username':username,'password':password}).content.decode()
     payload = json.loads(response)
@@ -251,6 +266,7 @@ def login(user_type):
 
 @app.route('/Schedule/',methods= ['GET','POST'])
 def schedule():
+    SCHEDULER = "http://127.0.0.1:5011"
     auth_token=""
     if auth_token == "":
         auth_token = request.headers.get('Authorization')
@@ -259,19 +275,23 @@ def schedule():
     try:
         payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'),algorithms=['HS256'])
     except:
-        return session_expired("End_User",'')
-    
-    SCHEDULER = IP_ADDRESSES.find_one({'name': 'Scheduler'})['URL']
+        return session_expired("End_User",'')   
+    if not is_local:
+        SCHEDULER = IP_ADDRESSES.find_one({'name': 'Scheduler'})['url']
     return render_template("temp.html",username=payload['sub'],user_type="End_User",token=auth_token,URL=SCHEDULER)
 
 
 @app.route('/Success/',methods= ['GET','POST'])
 def success():
+    REQUEST_MANAGER = 'http://127.0.0.1:5000'
+    if not is_local:
+        REQUEST_MANAGER =  IP_ADDRESSES.find_one({'name': 'Request_Manager'})['url']
     return render_template("success.html",URL=REQUEST_MANAGER)
 
 @app.route('/Upload/<user_type>', methods = ['POST'])
 def upload(user_type):
     auth_token = request.cookies.get('auth_token')
+    DEPLOYER = "http://127.0.0.1:5005"
     # user_type = ""
     # if type == "App":
     #     user_type = 'App_Developer' 
@@ -296,7 +316,8 @@ def upload(user_type):
         to_send={}
         to_send["username"]=username
         to_send["role"]=user_type
-        DEPLOYER = IP_ADDRESSES.find_one({'name': 'Deployment_Manager'})['URL']
+        if not is_local:
+            DEPLOYER = IP_ADDRESSES.find_one({'name': 'Deployment_Manager'})['url']
         response=requests.post(DEPLOYER+'/submit',json=to_send,files=files).content.decode()
         # if user_type == 'App_Developer':
         #     to_send["app_name"]=f.filename
@@ -314,7 +335,9 @@ def upload(user_type):
     except Exception as e:
         return session_expired(user_type,str(e))
 
-
+@app.route("/healthCheck", methods=['GET', 'POST'])
+def healthCheck():
+    return "ok"
 
 if(__name__ == '__main__'):
     app.run(host ='0.0.0.0',port=5000,debug=True)

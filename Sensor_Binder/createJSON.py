@@ -19,7 +19,7 @@ app_req_db = dbname["app_requirement"]
 
 IP_ADDRESSES = dbname["MODULE_URL"]
 
-
+is_local = False
 
 # ip_table = list(IP_ADDRESSES.find())
 # for i in ip_table:
@@ -28,7 +28,9 @@ IP_ADDRESSES = dbname["MODULE_URL"]
 #     if 'SCHEDULER' in i:
 #         SCHEDULER = i['SCHEDULER']
 
-
+@app.route("/healthCheck", methods=['GET', 'POST'])
+def healthCheck():
+    return "ok"
 
 @app.route("/jsonifyRequest", methods=['POST', 'GET'])
 def sensor_requirements():
@@ -98,23 +100,29 @@ def sensor_requirements():
         print("Error")
         # redir = redirect(REQUEST_MANAGER+"/sensor_location", code=307)
         # redir.headers['Authorization'] = auth_token
-        REQUEST_MANAGER = IP_ADDRESSES.find_one({'name': 'Request_Manager'})['URL']
+        REQUEST_MANAGER = "http://127.0.0.1:5000"
+        if not is_local:
+            REQUEST_MANAGER = IP_ADDRESSES.find_one({'name': 'Request_Manager'})['url']
         return redirect(REQUEST_MANAGER+"/sensor_location/", code=307)
         #return render_template("sensor_location.html", error='Sensor not available', given_app_id=given_app_id, sensor_kinds=sensor_kinds, sensor_count=sensor_count)
 
     else:
         scheduling_data = {"app_id": given_app_id,"info" : binding_map}
         print(scheduling_data)
-        SCHEDULER = IP_ADDRESSES.find_one({'name': 'Scheduler'})['URL']
+        REQUEST_MANAGER = "http://127.0.0.1:5000"
+        SCHEDULER = "http://127.0.0.1:5011"
+        if not is_local:
+            SCHEDULER = IP_ADDRESSES.find_one({'name': 'Scheduler'})['url']
         response=requests.post( SCHEDULER+ "/schedule_data",json=scheduling_data).content.decode()
-        REQUEST_MANAGER = IP_ADDRESSES.find_one({'name': 'Request_Manager'})['URL']
+        if not is_local:        
+            REQUEST_MANAGER = IP_ADDRESSES.find_one({'name': 'Request_Manager'})['url']
         redir = redirect(REQUEST_MANAGER+"/Schedule/")
         redir.headers['Authorization'] = auth_token
         return redir
 
-@app.route("/")
-def m():
-    #get_sensors()
-    return render_template("sensor_location.html", sensor_kinds = sensor_kinds, sensor_count=sensor_count)
+# @app.route("/")
+# def m():
+#     #get_sensors()
+#     return render_template("sensor_location.html", sensor_kinds = sensor_kinds, sensor_count=sensor_count)
 
-app.run(port=6005)
+app.run(port=6005,host="0.0.0.0")

@@ -79,3 +79,35 @@ Request from username: 111 to start service sent to deployer
 Request from username: 111 to start service sent to deployer
 Request from username: 111 to start service sent to deployer
 Request from username: 111 to start service sent to deployer
+Request from username: 11 to start service sent to deployer
+Request from username: 11 to start service sent to deployer
+Scheduled Request from username: 111 for every Monday
+Scheduled to kill request from username: 111 for every Monday
+Scheduled Request from username: 111 for every Tuesday
+Scheduled to kill request from username: 111 for every Tuesday
+Scheduled Request from username: 111 for every Wednesday
+Scheduled to kill request from username: 111 for every Wednesday
+Scheduled Request from username: 111 for every Thursday
+Scheduled to kill request from username: 111 for every Thursday
+Scheduled Request from username: 111 for every Friday
+Scheduled to kill request from username: 111 for every Friday
+Scheduled Request from username: 111 for every Saturday
+Scheduled to kill request from username: 111 for every Saturday
+Request from username: 111 to start service sent to deployer
+Request from username: 11 to start service sent to deployer
+Scheduled Request from username: 11 for every Sunday
+Scheduled to kill request from username: 11 for every Sunday
+Scheduled Request from username: 11 for every Monday
+Scheduled to kill request from username: 11 for every Monday
+Scheduled Request from username: 11 for every Tuesday
+Scheduled to kill request from username: 11 for every Tuesday
+Scheduled Request from username: 11 for every Thursday
+Scheduled to kill request from username: 11 for every Thursday
+Scheduled Request from username: 11 for every Friday
+Scheduled to kill request from username: 11 for every Friday
+Scheduled Request from username: 11 for every Saturday
+Scheduled to kill request from username: 11 for every Saturday
+Request from username: 11 to start service sent to deployer
+Request from username: 11 to start service sent to deployer
+Request from username: 11 to start service sent to deployer
+Request from username: 11 to start service sent to deployer

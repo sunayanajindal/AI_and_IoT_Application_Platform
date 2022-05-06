@@ -7,7 +7,7 @@ import requests
 import schedule
 import time
 import datetime
-
+import uuid 
 app = Flask(__name__)
 
 scheduling_data =""
@@ -20,7 +20,7 @@ dbname = client['AI_PLATFORM']
 REQUEST_MANAGER = 'http://20.216.18.166:5000'
 
 IP_ADDRESSES = dbname["MODULE_URL"]
-
+is_local = False
 
 #dbname = client['AI_PLATFORM']
 USER_APP_SENSOR_DB = dbname["USER_APP_SENSOR"]
@@ -41,14 +41,16 @@ def writelog(msg):
 def sendToDeployer (data,repeatStatus, operation):
     msg="Request from username: "+data['username']+" to start service sent to deployer"
     writelog(msg)
-    SOME_URL = "http://127.0.0.1:5005"
+    DEPLOY_URL = "http://127.0.0.1:5005/"
+    if not is_local:
+        DEPLOY_URL = IP_ADDRESSES.find_one({'name': 'Deployment_Manager'})['url']
     if(operation == "start"):
         print("Forwarding start request to the Deployer")
-        response=requests.post(SOME_URL + "/deployApp",json=scheduling_data).content.decode()
+        response=requests.post(DEPLOY_URL + "/deployApp",json=scheduling_data).content.decode()
         # response=requests.post("{{URL}}/startRequest",json=scheduling_data).content.decode()
     else:
         print("Forwarding stop request to the Deployer")
-        response=requests.post(SOME_URL +"/removeApp",json=scheduling_data).content.decode()
+        response=requests.post(DEPLOY_URL +"/removeApp",json=scheduling_data).content.decode()
         # response=requests.post("http://127.0.0.1:5005/stopRequest",json=scheduling_data).content.decode()
 
     if(repeatStatus=='False'):
@@ -124,10 +126,10 @@ def formatFormData(output):
     #     data['ApplicationID'] = output['ApplicationID']
 
     if 'StartTime' in output and output['StartTime'] != "":
-        data['StartTime'] = output['StartTime']
+        data['StartTime'] = output['StartTime'] #- datetime.timedelta(hours=5,minutes=30)
 
     if 'EndTime' in output and output['EndTime'] != "":
-        data['EndTime'] = output['EndTime']
+        data['EndTime'] = output['EndTime'] #- datetime.timedelta(hours=5,minutes=30)
 
     for i in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']:
         if i in output:
@@ -150,13 +152,16 @@ def submitSchedule():
     print(data)
     insertinDB()
     scheduleRequest(data)
-    REQUEST_MANAGER = IP_ADDRESSES.find_one({'name': 'Request_Manager'})['URL']
+    REQUEST_MANAGER = "http://127.0.0.1:5000/"
+    if not is_local:
+        REQUEST_MANAGER = IP_ADDRESSES.find_one({'name': 'Request_Manager'})['url']
     redir = redirect(REQUEST_MANAGER+"/Success")
     return redir
 
 
 def insertinDB():
-    copy_scheduling_data = {"app_id" : scheduling_data['app_id'], "username" : scheduling_data['username'], "info" : scheduling_data['info']}
+    scheduling_data['instance_id']= str(uuid.uuid4())
+    copy_scheduling_data = {"app_id" : scheduling_data['app_id'], "username" : scheduling_data['username'], "info" : scheduling_data['info'], 'instance_id': scheduling_data['instance_id']}
     USER_APP_SENSOR_DB.insert_one(copy_scheduling_data)
 
 def runPending():
@@ -165,10 +170,13 @@ def runPending():
         schedule.run_pending()
         time.sleep(1)
 
-
+@app.route("/healthCheck", methods=['GET', 'POST'])
+def healthCheck():
+    return "ok"
+    
 def renderUI():
     app.use_reloader=False
-    app.run(port=5011)
+    app.run(port=5011,host="0.0.0.0")
 
 t1 = threading.Thread(target=renderUI)
 t2 = threading.Thread(target = runPending)
